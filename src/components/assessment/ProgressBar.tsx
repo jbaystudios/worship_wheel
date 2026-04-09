@@ -19,7 +19,7 @@ const ELEMENTS = [
   'Aural',
 ];
 
-const QUESTIONS_PER_ELEMENT = 2;
+const QUESTIONS_PER_ELEMENT = 3;
 
 export function ProgressBar({ current, total, elementName }: ProgressBarProps) {
   const percent = Math.round((current / total) * 100);

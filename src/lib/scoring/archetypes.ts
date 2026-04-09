@@ -1,0 +1,98 @@
+import type { Archetype, ElementCode } from '@/types';
+import { ELEMENT_NAMES } from '@/types';
+
+type Scores = Record<ElementCode, number>;
+
+interface ArchetypeDefinition extends Archetype {
+  match: (s: Scores, overall: number, sd: number) => boolean;
+}
+
+function sampleSD(scores: Scores): number {
+  const vals = Object.values(scores);
+  const n = vals.length;
+  const mean = vals.reduce((sum, v) => sum + v, 0) / n;
+  const variance = vals.reduce((sum, v) => sum + (v - mean) ** 2, 0) / (n - 1);
+  return Math.sqrt(variance);
+}
+
+const ARCHETYPES: ArchetypeDefinition[] = [
+  {
+    key: 'campfire_strummer',
+    name: 'The Campfire Strummer',
+    message: "You've got a solid foundation — let's expand your vocabulary and unlock the full neck.",
+    match: (s) =>
+      s.HM >= 5 &&
+      s.RH >= 4 &&
+      s.FB <= 4 &&
+      s.ML <= 4 &&
+      s.TO <= 4 &&
+      s.TH <= 4 &&
+      s.TE <= 4 &&
+      s.AU <= 4,
+  },
+  {
+    key: 'rhythm_machine',
+    name: 'The Rhythm Machine',
+    message: "Your groove is real — now let's expand your chord vocabulary and fretboard knowledge.",
+    match: (s) => s.RH >= 7 && s.TE >= 6 && s.HM <= 4 && s.FB <= 4,
+  },
+  {
+    key: 'theory_head',
+    name: 'The Theory Head',
+    message: "You understand the music — now let's get your hands and ears to match your brain.",
+    match: (s) => s.TH >= 7 && s.AU >= 6 && s.TE <= 4 && s.HM <= 5,
+  },
+  {
+    key: 'almost_there_player',
+    name: 'The Almost-There Player',
+    message: "You're already solid across the board. The next stage is refinement.",
+    match: (s, overall) =>
+      overall >= 55 && Object.values(s).every((v) => v >= 5),
+  },
+  {
+    key: 'balanced_beginner',
+    name: 'The Balanced Beginner',
+    message: 'Great news — you have an even foundation. Everything will grow together.',
+    match: (s, _overall, sd) =>
+      Object.values(s).every((v) => v <= 4) && sd <= 1.5,
+  },
+  {
+    key: 'uneven_intermediate',
+    name: 'The Uneven Intermediate',
+    message: 'The gaps between strong and weak areas are holding you back. Focused work on weakest areas transforms fastest.',
+    match: (s, overall, sd) => {
+      const vals = Object.values(s);
+      const maxVal = Math.max(...vals);
+      const minVal = Math.min(...vals);
+      return maxVal - minVal >= 5 && sd > 2.0 && overall >= 30;
+    },
+  },
+];
+
+/**
+ * Match a profile archetype based on element scores.
+ * Evaluates archetypes in priority order; returns the first match.
+ * Falls back to strongest-element-based archetype if no match.
+ */
+export function matchArchetype(scores: Scores): Archetype {
+  const overall = Object.values(scores).reduce((sum, v) => sum + v, 0);
+  const sd = sampleSD(scores);
+
+  for (const archetype of ARCHETYPES) {
+    if (archetype.match(scores, overall, sd)) {
+      return { key: archetype.key, name: archetype.name, message: archetype.message };
+    }
+  }
+
+  // Fallback: based on strongest element
+  const entries = Object.entries(scores) as [ElementCode, number][];
+  entries.sort((a, b) => b[1] - a[1]);
+  const strongest = entries[0][0];
+  const strongestName = ELEMENT_NAMES[strongest];
+
+  return {
+    key: `fallback_${strongest}`,
+    name: `The ${strongestName} Player`,
+    message: `Your strongest area is ${strongestName}. Keep building on that foundation while developing your other skills.`,
+  };
+}

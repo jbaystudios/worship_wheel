@@ -1,7 +1,7 @@
 import { AnswerOption } from './AnswerOption';
 
 interface Option {
-  letter: string;
+  key: string;
   text: string;
 }
 
@@ -9,7 +9,7 @@ interface QuestionCardProps {
   questionText: string;
   options: Option[];
   selectedOption: string | null;
-  onSelect: (letter: string) => void;
+  onSelect: (key: string) => void;
 }
 
 export function QuestionCard({ questionText, options, selectedOption, onSelect }: QuestionCardProps) {
@@ -19,11 +19,11 @@ export function QuestionCard({ questionText, options, selectedOption, onSelect }
       <div className="flex flex-col gap-space-3 max-md:gap-space-2">
         {options.map((opt) => (
           <AnswerOption
-            key={opt.letter}
-            letter={opt.letter}
+            key={opt.key}
+            letter={opt.key}
             text={opt.text}
-            isSelected={selectedOption === opt.letter}
-            onSelect={() => onSelect(opt.letter)}
+            isSelected={selectedOption === opt.key}
+            onSelect={() => onSelect(opt.key)}
           />
         ))}
       </div>

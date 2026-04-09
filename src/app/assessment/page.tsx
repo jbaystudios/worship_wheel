@@ -4,44 +4,71 @@ import { useState, useRef, useCallback } from 'react';
 import Image from 'next/image';
 import { ProgressBar } from '@/components/assessment/ProgressBar';
 import { QuestionCard } from '@/components/assessment/QuestionCard';
+import { ChecklistCard } from '@/components/assessment/ChecklistCard';
 import { EmailGate } from '@/components/assessment/EmailGate';
-import { questions } from '@/data/placeholder-questions';
+import { ResultsLoading } from '@/components/assessment/ResultsLoading';
+import { questions } from '@/data/questions';
+import type { Question } from '@/types';
 
 const AUTO_ADVANCE_DELAY = 400;
+const MIN_LOADING_MS = 2000;
+const API_TIMEOUT_MS = 15000;
 
-type Phase = 'quiz' | 'email-gate';
+type Phase = 'quiz' | 'email-gate' | 'loading';
+
+/** Answer state: single-select stores a key string, checklist stores an array of indices */
+type AnswerValue = string | number[];
 
 export default function AssessmentPage() {
   const [phase, setPhase] = useState<Phase>('quiz');
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [answers, setAnswers] = useState<Record<number, string>>({});
+  const [answers, setAnswers] = useState<Record<number, AnswerValue>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loadingError, setLoadingError] = useState<string | null>(null);
   const autoAdvanceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const question = questions[currentIndex];
+  // Stash email data for retry
+  const emailDataRef = useRef<{ firstName: string; email: string } | null>(null);
+
+  const question: Question = questions[currentIndex];
   const isFirst = currentIndex === 0;
   const isLast = currentIndex === questions.length - 1;
-  const hasAnswer = answers[currentIndex] !== undefined;
 
-  const handleSelect = useCallback((letter: string) => {
-    setAnswers((prev) => ({ ...prev, [currentIndex]: letter }));
+  const currentAnswer = answers[currentIndex];
+  const hasAnswer =
+    currentAnswer !== undefined &&
+    (Array.isArray(currentAnswer) || currentAnswer !== '');
 
+  function clearAutoAdvance() {
     if (autoAdvanceTimer.current) {
       clearTimeout(autoAdvanceTimer.current);
+      autoAdvanceTimer.current = null;
     }
+  }
 
-    if (currentIndex < questions.length - 1) {
-      autoAdvanceTimer.current = setTimeout(() => {
-        setCurrentIndex((prev) => prev + 1);
-      }, AUTO_ADVANCE_DELAY);
-    }
-  }, [currentIndex]);
+  const handleSingleSelect = useCallback(
+    (key: string) => {
+      setAnswers((prev) => ({ ...prev, [currentIndex]: key }));
+      clearAutoAdvance();
+
+      if (currentIndex < questions.length - 1) {
+        autoAdvanceTimer.current = setTimeout(() => {
+          setCurrentIndex((prev) => prev + 1);
+        }, AUTO_ADVANCE_DELAY);
+      }
+    },
+    [currentIndex],
+  );
+
+  const handleChecklistChange = useCallback(
+    (indices: number[]) => {
+      setAnswers((prev) => ({ ...prev, [currentIndex]: indices }));
+    },
+    [currentIndex],
+  );
 
   function handleNext() {
-    if (!hasAnswer) return;
-    if (autoAdvanceTimer.current) {
-      clearTimeout(autoAdvanceTimer.current);
-    }
+    clearAutoAdvance();
     if (isLast) {
       setPhase('email-gate');
       return;
@@ -51,20 +78,85 @@ export default function AssessmentPage() {
 
   function handleBack() {
     if (isFirst) return;
-    if (autoAdvanceTimer.current) {
-      clearTimeout(autoAdvanceTimer.current);
-    }
+    clearAutoAdvance();
     setCurrentIndex((prev) => prev - 1);
   }
 
+  async function submitAssessment(firstName: string, email: string) {
+    setPhase('loading');
+    setLoadingError(null);
+
+    const minDelay = new Promise((r) => setTimeout(r, MIN_LOADING_MS));
+
+    const apiCall = Promise.race([
+      fetch('/api/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ answers, firstName, email }),
+      }),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Request timed out')), API_TIMEOUT_MS),
+      ),
+    ]);
+
+    try {
+      const [response] = await Promise.all([apiCall, minDelay]);
+
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}));
+        throw new Error(body.error || `Server error (${response.status})`);
+      }
+
+      const data = await response.json();
+      // TODO: redirect to /results/[data.sessionId]
+      // For now, log results
+      console.log('Assessment results:', data);
+    } catch (err) {
+      setLoadingError(
+        err instanceof Error ? err.message : 'Something went wrong. Please try again.',
+      );
+    }
+  }
+
   async function handleEmailSubmit(firstName: string, email: string) {
+    emailDataRef.current = { firstName, email };
     setIsSubmitting(true);
-    // TODO: POST to /api/submit with answers, firstName, email
-    // For now, simulate a brief delay then redirect
-    await new Promise((r) => setTimeout(r, 1000));
-    // TODO: redirect to /results/[resultId]
+    await submitAssessment(firstName, email);
     setIsSubmitting(false);
   }
+
+  function handleRetry() {
+    if (emailDataRef.current) {
+      submitAssessment(emailDataRef.current.firstName, emailDataRef.current.email);
+    }
+  }
+
+  function renderQuestion(q: Question) {
+    switch (q.type) {
+      case 'scenario':
+      case 'experience':
+        return (
+          <QuestionCard
+            questionText={q.text}
+            options={q.options}
+            selectedOption={(currentAnswer as string) ?? null}
+            onSelect={handleSingleSelect}
+          />
+        );
+      case 'checklist':
+        return (
+          <ChecklistCard
+            questionText={q.text}
+            items={q.items}
+            checkedIndices={(currentAnswer as number[]) ?? []}
+            onChange={handleChecklistChange}
+          />
+        );
+    }
+  }
+
+  // For checklist questions, always allow advancing (0 selections = score 1)
+  const canAdvance = question.type === 'checklist' || hasAnswer;
 
   return (
     <main className="flex min-h-screen flex-col">
@@ -100,15 +192,7 @@ export default function AssessmentPage() {
               elementName={question.elementName}
             />
 
-            <QuestionCard
-              questionText={question.text}
-              options={question.options.map((o) => ({
-                letter: o.letter,
-                text: o.text,
-              }))}
-              selectedOption={answers[currentIndex] ?? null}
-              onSelect={handleSelect}
-            />
+            {renderQuestion(question)}
 
             {/* Navigation */}
             <div className="flex items-center justify-between max-md:justify-center">
@@ -124,21 +208,34 @@ export default function AssessmentPage() {
                 <div />
               )}
 
-              {isLast && (
+              {/* Show Next for checklists (always) and See Results for last question */}
+              {isLast ? (
                 <button
                   type="button"
                   onClick={handleNext}
-                  disabled={!hasAnswer}
+                  disabled={!canAdvance}
                   className="inline-flex items-center justify-center rounded-sm bg-btn-primary px-space-5 py-[10px] text-text-base font-bold text-btn-primary-text hover:bg-btn-primary-hover hover:text-btn-primary-hover-text transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   See My Results →
                 </button>
-              )}
+              ) : question.type === 'checklist' ? (
+                <button
+                  type="button"
+                  onClick={handleNext}
+                  className="inline-flex items-center justify-center rounded-sm bg-btn-primary px-space-5 py-[10px] text-text-base font-bold text-btn-primary-text hover:bg-btn-primary-hover hover:text-btn-primary-hover-text transition-colors cursor-pointer"
+                >
+                  Next Question →
+                </button>
+              ) : null}
             </div>
+          </div>
+        ) : phase === 'email-gate' ? (
+          <div className="relative z-10 flex w-full justify-center">
+            <EmailGate onSubmit={handleEmailSubmit} isSubmitting={isSubmitting} />
           </div>
         ) : (
           <div className="relative z-10 flex w-full justify-center">
-            <EmailGate onSubmit={handleEmailSubmit} isSubmitting={isSubmitting} />
+            <ResultsLoading error={loadingError} onRetry={handleRetry} />
           </div>
         )}
       </section>

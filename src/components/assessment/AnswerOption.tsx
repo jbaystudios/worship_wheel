@@ -13,7 +13,7 @@ export function AnswerOption({ letter, text, isSelected, onSelect }: AnswerOptio
       className={`flex w-full items-center gap-space-3 rounded-sm border p-space-4 max-md:p-space-3 max-md:flex-col max-md:items-center max-md:text-center max-md:gap-space-2 text-left transition-colors cursor-pointer ${
         isSelected
           ? 'border-accent-500 bg-accent-500 text-neutral-950'
-          : 'border-theme-bg-2 bg-transparent hover:border-accent-500/50'
+          : 'border-neutral-700 bg-transparent hover:border-accent-500/50'
       }`}
     >
       <span
@@ -23,7 +23,7 @@ export function AnswerOption({ letter, text, isSelected, onSelect }: AnswerOptio
             : 'border border-theme-text text-theme-text'
         }`}
       >
-        {letter}
+        {letter.toUpperCase()}
       </span>
       <span className="text-text-base max-md:text-text-sm">{text}</span>
     </button>
