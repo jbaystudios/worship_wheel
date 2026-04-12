@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { ProgressBar } from '@/components/assessment/ProgressBar';
 import { QuestionCard } from '@/components/assessment/QuestionCard';
@@ -20,6 +21,7 @@ type Phase = 'quiz' | 'email-gate' | 'loading';
 type AnswerValue = string | number[];
 
 export default function AssessmentPage() {
+  const router = useRouter();
   const [phase, setPhase] = useState<Phase>('quiz');
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<number, AnswerValue>>({});
@@ -108,9 +110,8 @@ export default function AssessmentPage() {
       }
 
       const data = await response.json();
-      // TODO: redirect to /results/[data.sessionId]
-      // For now, log results
-      console.log('Assessment results:', data);
+      sessionStorage.setItem('worshipWheelResult', JSON.stringify(data));
+      router.push('/results');
     } catch (err) {
       setLoadingError(
         err instanceof Error ? err.message : 'Something went wrong. Please try again.',
