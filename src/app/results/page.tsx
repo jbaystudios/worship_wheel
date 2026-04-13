@@ -93,7 +93,7 @@ export default function ResultsPage() {
       </section>
 
       {/* Score Summary */}
-      <section className="flex w-full justify-center bg-theme-bg-2 px-site-margin py-section-sm max-md:py-space-6">
+      <section className="flex w-full justify-center px-site-margin py-space-5 max-md:py-space-4">
         <div className="w-full max-w-[1344px]">
           <ScoreSummary
             overallScore={result.overallScore}

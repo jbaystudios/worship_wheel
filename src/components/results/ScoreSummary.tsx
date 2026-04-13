@@ -13,7 +13,7 @@ function StatCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-1 flex-col items-center justify-center gap-space-2 rounded-md bg-theme-bg-2 p-space-5 max-md:p-space-4 text-center">
+    <div className="flex flex-1 flex-col items-center justify-center gap-space-3 rounded-md bg-theme-bg-2 px-space-5 py-space-4 max-md:px-space-4 max-md:py-space-3 text-center">
       <span className="text-text-sm font-medium uppercase tracking-[0.15em] text-theme-text-muted">
         {label}
       </span>
@@ -32,7 +32,7 @@ export function ScoreSummary({
   const shortName = archetypeName.replace(/^The\s+/i, '');
 
   return (
-    <div className="flex w-full gap-space-4 max-md:flex-col max-md:gap-space-3">
+    <div className="flex w-full gap-space-5 max-md:flex-col max-md:gap-space-3">
       <StatCard label="Overall Score">
         <span className="text-h4 max-md:text-h5 font-bold text-accent-500">
           {overallScore}/80
