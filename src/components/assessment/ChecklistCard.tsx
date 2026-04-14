@@ -7,6 +7,27 @@ interface ChecklistCardProps {
   onChange: (indices: number[]) => void;
 }
 
+export function computeNextSelection(
+  currentIndices: number[],
+  clickedIndex: number,
+  items: ChecklistItem[],
+): number[] {
+  if (currentIndices.includes(clickedIndex)) {
+    return currentIndices.filter((i) => i !== clickedIndex);
+  }
+
+  const clickedItem = items.find((i) => i.index === clickedIndex);
+  if (clickedItem?.isAllOfAbove) {
+    return [clickedIndex];
+  }
+
+  const metaIndices = new Set(
+    items.filter((i) => i.isAllOfAbove).map((i) => i.index),
+  );
+  const withoutMetas = currentIndices.filter((i) => !metaIndices.has(i));
+  return [...withoutMetas, clickedIndex];
+}
+
 export function ChecklistCard({
   questionText,
   items,
@@ -14,12 +35,10 @@ export function ChecklistCard({
   onChange,
 }: ChecklistCardProps) {
   function toggleItem(index: number) {
-    if (checkedIndices.includes(index)) {
-      onChange(checkedIndices.filter((i) => i !== index));
-    } else {
-      onChange([...checkedIndices, index]);
-    }
+    onChange(computeNextSelection(checkedIndices, index, items));
   }
+
+  const firstMetaIndex = items.findIndex((i) => i.isAllOfAbove);
 
   return (
     <div className="flex w-full flex-col gap-space-5 max-md:gap-space-4 rounded-md bg-theme-bg-2 p-space-7 max-md:p-space-4">
@@ -30,32 +49,37 @@ export function ChecklistCard({
         Select all that apply
       </p>
       <div className="flex flex-col gap-space-2">
-        {items.map((item) => {
+        {items.map((item, idx) => {
           const isChecked = checkedIndices.includes(item.index);
+          const needsSeparator = item.isAllOfAbove && idx === firstMetaIndex && idx > 0;
           return (
-            <button
-              key={item.index}
-              type="button"
-              onClick={() => toggleItem(item.index)}
-              className={`flex w-full items-center gap-space-3 rounded-sm border p-space-3 text-left transition-colors cursor-pointer ${
-                isChecked
-                  ? 'border-accent-500 bg-accent-900 text-theme-text'
-                  : 'border-neutral-700 bg-transparent text-theme-text-muted hover:border-accent-500/50'
-              }`}
-            >
-              <span
-                className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-[6px] text-[14px] font-bold transition-colors ${
+            <div key={item.index} className="flex flex-col gap-space-2">
+              {needsSeparator && (
+                <div className="my-space-2 border-t border-neutral-700/50" aria-hidden="true" />
+              )}
+              <button
+                type="button"
+                onClick={() => toggleItem(item.index)}
+                className={`flex w-full items-center gap-space-3 rounded-sm border p-space-3 text-left transition-colors cursor-pointer ${
                   isChecked
-                    ? 'bg-accent-500 text-neutral-950'
-                    : 'border-2 border-neutral-700'
+                    ? 'border-accent-500 bg-accent-900 text-theme-text'
+                    : 'border-neutral-700 bg-transparent text-theme-text-muted hover:border-accent-500/50'
                 }`}
               >
-                {isChecked && '✓'}
-              </span>
-              <span className="text-text-base max-md:text-text-sm">
-                {item.text}
-              </span>
-            </button>
+                <span
+                  className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-[6px] text-[14px] font-bold transition-colors ${
+                    isChecked
+                      ? 'bg-accent-500 text-neutral-950'
+                      : 'border-2 border-neutral-700'
+                  }`}
+                >
+                  {isChecked && '✓'}
+                </span>
+                <span className="text-text-base max-md:text-text-sm">
+                  {item.text}
+                </span>
+              </button>
+            </div>
           );
         })}
       </div>

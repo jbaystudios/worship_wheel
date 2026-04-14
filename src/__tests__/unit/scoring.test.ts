@@ -8,6 +8,8 @@ import {
   scorePercentage,
   scoreBalance,
 } from '@/lib/scoring/calculator';
+import { questions } from '@/data/questions';
+import type { ChecklistQuestion } from '@/types';
 
 // ── Scenario scoring ──────────────────────────────────────────
 
@@ -168,4 +170,23 @@ describe('scoreBalance', () => {
     const balance = scoreBalance([3, 7, 3, 7, 3, 7, 3, 7]);
     expect(balance).toBeCloseTo(3.95, 0);
   });
+});
+
+// ── "All of the above" scoring parity ─────────────────────────
+
+describe('scoreChecklist with isAllOfAbove item selected alone', () => {
+  const checklists = questions.filter(
+    (q): q is ChecklistQuestion => q.type === 'checklist',
+  );
+
+  for (const q of checklists) {
+    const metas = q.items.filter((i) => i.isAllOfAbove);
+    if (metas.length === 0) continue;
+
+    for (const meta of metas) {
+      it(`${q.id}: selecting only meta (index ${meta.index}) returns its own points (${meta.points})`, () => {
+        expect(scoreChecklist([meta.index], q.items)).toBe(meta.points);
+      });
+    }
+  }
 });

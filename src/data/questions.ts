@@ -87,8 +87,8 @@ export const questions: Question[] = [
       { index: 4, text: 'Dyads (two-note voicings) for major/minor.', points: 6 },
       { index: 5, text: 'Sus2 and sus4 voicings.', points: 7 },
       { index: 6, text: 'Power chords using three shapes.', points: 7 },
-      { index: 7, text: 'All of the above in two+ zones.', points: 8 },
-      { index: 8, text: 'All of the above in all three zones, mixed in real time.', points: 10 },
+      { index: 7, text: 'All of the above in two+ zones.', points: 8, isAllOfAbove: true },
+      { index: 8, text: 'All of the above in all three zones, mixed in real time.', points: 10, isAllOfAbove: true },
     ],
   },
   {
@@ -142,6 +142,7 @@ export const questions: Question[] = [
       { index: 5, text: 'Add expression (vibrato, bends, slides).', points: 8 },
       { index: 6, text: 'Improvise lead lines over progressions in different keys.', points: 9 },
       { index: 7, text: 'My melodies sound lyrical \u2014 like a voice singing.', points: 10 },
+      { index: 8, text: 'All of the above', points: 10, isAllOfAbove: true },
     ],
   },
   {
@@ -195,6 +196,7 @@ export const questions: Question[] = [
       { index: 5, text: 'I can confidently play in 3/4 or 6/8 time.', points: 8 },
       { index: 6, text: 'I use multiple right-hand techniques and choose between them.', points: 9 },
       { index: 7, text: 'I can play rhythmically interesting parts in any time signature.', points: 10 },
+      { index: 8, text: 'All of the above', points: 10, isAllOfAbove: true },
     ],
   },
   {
@@ -248,6 +250,7 @@ export const questions: Question[] = [
       { index: 5, text: 'I understand reverb parameters (decay time, room size).', points: 8 },
       { index: 6, text: 'I can switch between tones mid-song in live worship.', points: 9 },
       { index: 7, text: 'I understand the full signal chain (guitar, pedals, amp).', points: 10 },
+      { index: 8, text: 'All of the above', points: 10, isAllOfAbove: true },
     ],
   },
   {
@@ -302,7 +305,7 @@ export const questions: Question[] = [
       { index: 6, text: 'I understand what \'diatonic\' means.', points: 7 },
       { index: 7, text: 'I know how to build and use arpeggios.', points: 8 },
       { index: 8, text: 'I can recognize Mixolydian or Lydian sounds in songs.', points: 9 },
-      { index: 9, text: 'I can apply all of the above in real time.', points: 10 },
+      { index: 9, text: 'I can apply all of the above in real time.', points: 10, isAllOfAbove: true },
     ],
   },
   {
@@ -359,7 +362,7 @@ export const questions: Question[] = [
       { index: 8, text: 'Hybrid picking.', points: 8 },
       { index: 9, text: 'Fingerstyle.', points: 8 },
       { index: 10, text: 'I can play with my eyes closed without losing my place.', points: 9 },
-      { index: 11, text: 'All of these are automatic \u2014 technique is never the obstacle.', points: 10 },
+      { index: 11, text: 'All of these are automatic \u2014 technique is never the obstacle.', points: 10, isAllOfAbove: true },
     ],
   },
   {
@@ -413,6 +416,7 @@ export const questions: Question[] = [
       { index: 5, text: 'Reproduce a chord progression you\'ve just heard.', points: 8 },
       { index: 6, text: 'Hear the difference between root position and inversions.', points: 9 },
       { index: 7, text: 'Work out a full song completely by ear.', points: 10 },
+      { index: 8, text: 'All of the above', points: 10, isAllOfAbove: true },
     ],
   },
   {

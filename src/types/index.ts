@@ -28,6 +28,7 @@ export interface ChecklistItem {
   index: number; // 0-based
   text: string;
   points: number; // variable (1–10)
+  isAllOfAbove?: boolean;
 }
 
 interface QuestionBase {
