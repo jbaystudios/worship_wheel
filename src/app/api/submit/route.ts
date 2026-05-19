@@ -6,6 +6,7 @@ import { matchArchetype } from '@/lib/scoring/archetypes';
 import { getScoreBand, getCtaBand } from '@/lib/scoring/bands';
 import { ELEMENT_CODES, ELEMENT_NAMES } from '@/types';
 import type { ElementCode, ElementScore } from '@/types';
+import { createPublicClient } from '@/lib/supabase/public';
 
 // ── Zod validation ────────────────────────────────────────────
 
@@ -19,13 +20,25 @@ const checklistAnswerSchema = z.object({
   checkedItems: z.array(z.number()).optional(),
 });
 
+const utmParamsSchema = z.object({
+  source: z.string().max(255).nullish(),
+  medium: z.string().max(255).nullish(),
+  campaign: z.string().max(255).nullish(),
+  term: z.string().max(255).nullish(),
+  content: z.string().max(255).nullish(),
+});
+
 const submitSchema = z.object({
-  firstName: z.string().min(1),
+  firstName: z.string().min(1).max(100),
   email: z.string().email(),
   answers: z.record(
     z.string(),
     z.union([z.string(), z.array(z.number())]),
   ),
+  // spec 005: link the completion to its anonymous funnel session + acquisition.
+  anonSessionId: z.string().uuid().optional(),
+  completionTimeSeconds: z.number().int().positive().max(86_400).optional(),
+  utmParams: utmParamsSchema.optional(),
 });
 
 // ── Scoring logic ─────────────────────────────────────────────
@@ -134,7 +147,8 @@ export async function POST(request: Request) {
       );
     }
 
-    const { firstName, email, answers } = parsed.data;
+    const { firstName, email, answers, anonSessionId, completionTimeSeconds, utmParams } =
+      parsed.data;
 
     // Verify we have 24 answers
     const answerCount = Object.keys(answers).length;
@@ -148,11 +162,54 @@ export async function POST(request: Request) {
     // Compute scores
     const results = computeResults(answers);
 
-    // TODO: Store to Supabase (assessment_sessions table)
-    // TODO: Create/update Keap contact with tags
+    // Persist the completed assessment (spec 005 T029 — closes the spec-001
+    // persistence gap). The id is generated here so we never need to read the
+    // row back (the anon role has no SELECT on assessment_sessions).
+    const resultId = crypto.randomUUID();
+    const normalizedEmail = email.trim().toLowerCase();
+    const elementScoreMap = Object.fromEntries(
+      results.elementScores.map((e) => [e.elementCode, e.score]),
+    );
+
+    try {
+      const supabase = createPublicClient();
+      const { error: insertError } = await supabase
+        .from('assessment_sessions')
+        .insert({
+          id: resultId,
+          first_name: firstName,
+          email: normalizedEmail,
+          answers,
+          element_scores: elementScoreMap,
+          overall_score: results.overallScore,
+          overall_percentage: results.overallPercentage,
+          balance_score: results.balance.value,
+          profile_archetype: results.archetype.key,
+          weakest_elements: results.weakestElements,
+          strongest_elements: results.strongestElements,
+          completion_time_seconds: completionTimeSeconds ?? null,
+          utm_source: utmParams?.source ?? null,
+          utm_medium: utmParams?.medium ?? null,
+          utm_campaign: utmParams?.campaign ?? null,
+          utm_term: utmParams?.term ?? null,
+          utm_content: utmParams?.content ?? null,
+          anon_session_id: anonSessionId ?? null,
+          // keap_sync_status defaults to 'pending'. The deduplicated Keap
+          // contact sync (contracts/api.md — PUT /v1/contacts with
+          // duplicate_option) runs as a separate follow-up step.
+        });
+      if (insertError) {
+        console.error('assessment_sessions insert failed:', insertError.message);
+      }
+    } catch (err) {
+      // Non-fatal: the user still receives results (graceful degradation).
+      console.error('Supabase persistence error:', err);
+    }
 
     return NextResponse.json({
-      sessionId: crypto.randomUUID(),
+      resultId,
+      resultUrl: `/results/${resultId}`,
+      sessionId: resultId, // back-compat with existing result consumers
       firstName,
       email,
       ...results,

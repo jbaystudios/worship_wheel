@@ -167,15 +167,25 @@ Generates a dynamic Open Graph image for social sharing. Returns a PNG image of 
 
 ### Contact Upsert Flow
 
-Called server-side after successful assessment submission. Non-blocking — failures don't prevent the user from seeing results.
+Called server-side after a successful assessment submission. Non-blocking — failures do not prevent the user from seeing results.
 
-**Step 1: Find or create contact**
-- Search by email: `GET /v1/contacts?email={email}`
-- If found: use existing contact ID
-- If not found: create new contact: `POST /v1/contacts`
+> **Deduplication is mandatory.** Every contact write MUST go through Keap's
+> deduplicating create-or-update endpoint. A create-only call (`POST /v1/contacts`)
+> is **prohibited** for this integration — it produces duplicate contacts on
+> assessment retakes and on concurrent submissions of the same email.
 
-**Step 2: Update contact custom fields**
-- `PUT /v1/contacts/{contactId}` with custom fields:
+**Step 1: Create-or-update the contact, deduplicated by email**
+- Use `PUT /v1/contacts` — the Keap REST API v1 "Create or Update a Contact" endpoint.
+- The request body **MUST** include `"duplicate_option": "Email"`. With this set,
+  Keap atomically updates the existing contact that already has this email
+  instead of creating a new one (or creates one if none exists). This happens
+  server-side and is race-free, so two near-simultaneous submissions of the same
+  email converge on a single contact.
+- The email **MUST be normalized** (trimmed and lowercased) before it is sent —
+  `John@X.com ` and `john@x.com` must not be treated as different contacts.
+- Send the contact identity **and all custom fields in this single call**:
+  - `given_name`: first name
+  - `email_addresses`: the normalized email
   - `ww_overall_score`: overall score (8-80)
   - `ww_overall_percentage`: percentage
   - `ww_balance_score`: balance score (1-10)
@@ -184,20 +194,35 @@ Called server-side after successful assessment submission. Non-blocking — fail
   - `ww_weakest_elements`: comma-separated weakest element names
   - `ww_results_url`: full results URL
   - `ww_completed_at`: ISO timestamp
+- The response returns the contact `id` (existing or newly created) — used for Step 2.
+- A prior `GET /v1/contacts?email={email}` MAY be used to detect a returning
+  lead for branching logic, but MUST NOT be relied on for deduplication: a
+  check-then-create has a race window. `duplicate_option` is the authoritative safeguard.
 
-**Step 3: Apply tags**
+**Step 2: Apply tags**
 - `POST /v1/contacts/{contactId}/tags` with tag IDs:
   - `WW: Completed` (general assessment tag)
   - `WW: {score_band}` (e.g., "WW: 30-50")
   - `WW-Weak: {element}` for each weakest element (e.g., "WW-Weak: Tone")
+- Tag application is idempotent — re-applying a tag already on a contact is a
+  no-op, so assessment retakes do not pollute the contact.
 
-**Note**: Tags must be pre-created in Keap. The tag IDs will be stored in environment configuration.
+**Note**: Tags must be pre-created in Keap. The tag IDs are stored in environment configuration.
+
+**API version note**: This contract targets **Keap REST API v1**, where
+`duplicate_option` is supported on `PUT /v1/contacts`. It is **not available in
+REST API v2**. If the integration is ever migrated to v2, deduplication must be
+re-implemented as an explicit `GET` by email followed by `PATCH` (when a match
+exists) or `POST` (when none does) — and the create path must be guarded against
+the resulting race window.
 
 **Retry Strategy**:
 - On failure: set `keap_sync_status` to 'failed' in Supabase
 - Background retry: cron job or Supabase Edge Function checks for failed/retrying records
 - Max 3 retries with exponential backoff (1min, 5min, 30min)
 - After 3 failures: remains in 'failed' status for manual review
+- Retries are safe to repeat: because Step 1 deduplicates by email, retrying a
+  partially-succeeded sync updates the same contact rather than creating a duplicate.
 
 ## DataLayer Events Contract
 

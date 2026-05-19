@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { ProgressBar } from '@/components/assessment/ProgressBar';
@@ -10,6 +10,28 @@ import { EmailGate } from '@/components/assessment/EmailGate';
 import { ResultsLoading } from '@/components/assessment/ResultsLoading';
 import { questions } from '@/data/questions';
 import type { Question } from '@/types';
+import {
+  getAnonSessionId,
+  trackPageView,
+  trackAssessmentStarted,
+  trackQuestionViewed,
+  trackQuestionAnswered,
+  trackAssessmentSubmitted,
+} from '@/lib/events/tracker';
+
+/** Reads UTM params from the current URL, or undefined when none are present. */
+function captureUtmParams() {
+  if (typeof window === 'undefined') return undefined;
+  const p = new URLSearchParams(window.location.search);
+  const utm = {
+    source: p.get('utm_source'),
+    medium: p.get('utm_medium'),
+    campaign: p.get('utm_campaign'),
+    term: p.get('utm_term'),
+    content: p.get('utm_content'),
+  };
+  return Object.values(utm).some(Boolean) ? utm : undefined;
+}
 
 const AUTO_ADVANCE_DELAY = 400;
 const MIN_LOADING_MS = 2000;
@@ -32,6 +54,35 @@ export default function AssessmentPage() {
   // Stash email data for retry
   const emailDataRef = useRef<{ firstName: string; email: string } | null>(null);
 
+  // Funnel event-tracking state (spec 005)
+  const startedRef = useRef(false);
+  const answeredRef = useRef<Set<number>>(new Set());
+  const quizStartRef = useRef<number>(Date.now());
+
+  // page_view once on mount; question_viewed whenever the question changes.
+  useEffect(() => {
+    trackPageView();
+  }, []);
+
+  useEffect(() => {
+    const q = questions[currentIndex];
+    trackQuestionViewed(q.id, q.position);
+  }, [currentIndex]);
+
+  // Emits assessment_started (once) and question_answered (once per question).
+  const markProgress = useCallback((index: number) => {
+    if (!startedRef.current) {
+      startedRef.current = true;
+      quizStartRef.current = Date.now();
+      trackAssessmentStarted();
+    }
+    if (!answeredRef.current.has(index)) {
+      answeredRef.current.add(index);
+      const q = questions[index];
+      trackQuestionAnswered(q.id, q.position);
+    }
+  }, []);
+
   const question: Question = questions[currentIndex];
   const isFirst = currentIndex === 0;
   const isLast = currentIndex === questions.length - 1;
@@ -51,6 +102,7 @@ export default function AssessmentPage() {
   const handleSingleSelect = useCallback(
     (key: string) => {
       setAnswers((prev) => ({ ...prev, [currentIndex]: key }));
+      markProgress(currentIndex);
       clearAutoAdvance();
 
       if (currentIndex < questions.length - 1) {
@@ -59,18 +111,21 @@ export default function AssessmentPage() {
         }, AUTO_ADVANCE_DELAY);
       }
     },
-    [currentIndex],
+    [currentIndex, markProgress],
   );
 
   const handleChecklistChange = useCallback(
     (indices: number[]) => {
       setAnswers((prev) => ({ ...prev, [currentIndex]: indices }));
+      markProgress(currentIndex);
     },
-    [currentIndex],
+    [currentIndex, markProgress],
   );
 
   function handleNext() {
     clearAutoAdvance();
+    // Covers checklist questions advanced without toggling an item.
+    markProgress(currentIndex);
     if (isLast) {
       setPhase('email-gate');
       return;
@@ -94,7 +149,17 @@ export default function AssessmentPage() {
       fetch('/api/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ answers, firstName, email }),
+        body: JSON.stringify({
+          answers,
+          firstName,
+          email,
+          anonSessionId: getAnonSessionId(),
+          completionTimeSeconds: Math.max(
+            1,
+            Math.round((Date.now() - quizStartRef.current) / 1000),
+          ),
+          utmParams: captureUtmParams(),
+        }),
       }),
       new Promise<never>((_, reject) =>
         setTimeout(() => reject(new Error('Request timed out')), API_TIMEOUT_MS),
@@ -110,6 +175,7 @@ export default function AssessmentPage() {
       }
 
       const data = await response.json();
+      trackAssessmentSubmitted(data.resultId);
       sessionStorage.setItem('worshipWheelResult', JSON.stringify(data));
       router.push('/results');
     } catch (err) {

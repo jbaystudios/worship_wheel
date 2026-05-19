@@ -60,6 +60,8 @@ Optional: `/speckit.clarify`, `/speckit.analyze`, `/speckit.checklist`
 Spec Kit artefacts live in `.specify/`. Slash commands live in `.claude/commands/`. The constitution is at `.specify/memory/constitution.md`.
 
 ## Active Technologies
+- TypeScript 5.x, Node.js 20+ + Next.js 14 (App Router), `@supabase/supabase-js`, `@supabase/ssr` (new — App Router auth), Chart.js 4.4 + react-chartjs-2 (existing), Zod (existing), Tailwind CSS 3.4 (existing) (005-admin-dashboard)
+- Supabase (PostgreSQL) — new `assessment_events` table; existing `assessment_sessions` (one new column) and `aggregate_stats` (new RLS policy); Supabase Auth (`auth.users`) for dashboard accounts (005-admin-dashboard)
 
 - **Runtime**: TypeScript 5.x, Node.js 20+
 - **Framework**: Next.js 14 (App Router), deployed to Vercel
@@ -194,6 +196,7 @@ Full skill reference: `.claude/skills/ui-ux-pro-max/SKILL.md`
 - **Client PRD**: Complete (pending Charl review).
 
 ## Recent Changes
+- 005-admin-dashboard: Added TypeScript 5.x, Node.js 20+ + Next.js 14 (App Router), `@supabase/supabase-js`, `@supabase/ssr` (new — App Router auth), Chart.js 4.4 + react-chartjs-2 (existing), Zod (existing), Tailwind CSS 3.4 (existing)
 
 - 2026-04-14: Repository reorganised — `specs/`, `plan/`, `docs/` moved from the Brand Guide folder into the Worship Wheel project root so this folder is a self-contained working directory.
 - 002-assessment-scoring-optimization: Existing chart.js, supabase, zod stack retained; no new dependencies.
