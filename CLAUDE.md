@@ -17,6 +17,7 @@ The **Worship Wheel** is an interactive, web-based self-diagnosis quiz for worsh
 | Feature spec (MVP) | `specs/001-worship-wheel-assessment/spec.md` | Full functional specification (41+ requirements) |
 | Scoring optimisation | `specs/002-assessment-scoring-optimization/spec.md` | Algorithm refinements, checklist response expansion |
 | Results page | `specs/003-results-page/spec.md` | Results UI/UX specification |
+| Admin dashboard | `specs/005-admin-dashboard/spec.md` | Stakeholder analytics dashboard (auth, funnel, acquisition, outcomes, leads + CRM ops) |
 | Implementation plan | `specs/001-worship-wheel-assessment/plan.md` | 9-phase plan (A: Figma Design → I: Testing & Launch) |
 | Data model | `specs/001-worship-wheel-assessment/data-model.md` | Supabase schema, config shapes, question selection |
 | API contracts | `specs/001-worship-wheel-assessment/contracts/api.md` | Endpoints, Keap integration, DataLayer events |
@@ -60,18 +61,17 @@ Optional: `/speckit.clarify`, `/speckit.analyze`, `/speckit.checklist`
 Spec Kit artefacts live in `.specify/`. Slash commands live in `.claude/commands/`. The constitution is at `.specify/memory/constitution.md`.
 
 ## Active Technologies
-- TypeScript 5.x, Node.js 20+ + Next.js 14 (App Router), `@supabase/supabase-js`, `@supabase/ssr` (new — App Router auth), Chart.js 4.4 + react-chartjs-2 (existing), Zod (existing), Tailwind CSS 3.4 (existing) (005-admin-dashboard)
-- Supabase (PostgreSQL) — new `assessment_events` table; existing `assessment_sessions` (one new column) and `aggregate_stats` (new RLS policy); Supabase Auth (`auth.users`) for dashboard accounts (005-admin-dashboard)
 
 - **Runtime**: TypeScript 5.x, Node.js 20+
 - **Framework**: Next.js 14 (App Router), deployed to Vercel
-- **Database**: Supabase (PostgreSQL) — `assessment_sessions`, `aggregate_stats`
-- **Charting**: Chart.js 4.4 + react-chartjs-2 5.2 (radar chart); chartjs-node-canvas for server-side fallback
+- **Database**: Supabase (PostgreSQL) — `assessment_sessions`, `assessment_events`, `aggregate_stats`
+- **Auth**: Supabase Auth (`auth.users`) for the admin dashboard — `@supabase/ssr` cookie-based App Router clients
+- **Charting**: Chart.js 4.4 + react-chartjs-2 5.2 (radar chart); chartjs-node-canvas for server-side fallback; admin dashboard uses CSS bars
 - **OG Images**: @vercel/og (Satori) with SVG radar chart
 - **Styling**: Tailwind CSS 3.4
 - **Validation**: Zod
 - **CRM**: Keap/Infusionsoft REST API v1 (Service Account Key auth)
-- **Analytics**: GA4 via GTM (consent-gated by CookieBot)
+- **Analytics**: GA4 via GTM (consent-gated by CookieBot); first-party event tracking via `assessment_events` (admin dashboard)
 - **Testing**: Vitest (unit), Playwright (e2e)
 - **Config data**: Static JSON in `src/data/` (questions, recommendations, elements) — version-controlled, not in DB
 
@@ -193,10 +193,11 @@ Full skill reference: `.claude/skills/ui-ux-pro-max/SKILL.md`
 - **001 Worship Wheel Assessment**: Spec complete (clarified). Planning complete (plan.md, research.md, data-model.md, contracts, quickstart). Tasks generated.
 - **002 Assessment Scoring Optimization**: Adds checklist response expansion. No new dependencies — existing chart.js / supabase / zod stack. Supabase `answers` JSONB column expands for checklist responses.
 - **003 Results Page**: UI/UX spec for results. Client-side sessionStorage only for this scope.
+- **005 Admin Dashboard**: All five user stories (US1 auth, US2 funnel + event tracking, US3 acquisition, US4 outcomes, US5 leads + CRM sync health) code-complete on branch `005-admin-dashboard`. Polish phase in progress; Supabase migrations T006 and full e2e validation pending live DB.
 - **Client PRD**: Complete (pending Charl review).
 
 ## Recent Changes
-- 005-admin-dashboard: Added TypeScript 5.x, Node.js 20+ + Next.js 14 (App Router), `@supabase/supabase-js`, `@supabase/ssr` (new — App Router auth), Chart.js 4.4 + react-chartjs-2 (existing), Zod (existing), Tailwind CSS 3.4 (existing)
-
+- 2026-05-20: 005-admin-dashboard — US5 (leads table, CSV export, Keap sync-health panel) shipped; T053/T054/T058/T060 polish complete.
+- 2026-05-19: 005-admin-dashboard — US1–US4 shipped; introduced `@supabase/ssr` for App Router auth and the `assessment_events` first-party event log.
 - 2026-04-14: Repository reorganised — `specs/`, `plan/`, `docs/` moved from the Brand Guide folder into the Worship Wheel project root so this folder is a self-contained working directory.
 - 002-assessment-scoring-optimization: Existing chart.js, supabase, zod stack retained; no new dependencies.

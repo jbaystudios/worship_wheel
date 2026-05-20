@@ -158,12 +158,12 @@ Single Next.js web app. New code under `src/app/admin/`, `src/app/api/`, `src/co
 
 **Depends on**: `authenticated` SELECT policy on `assessment_sessions` (T005), `DateRangePicker` T032. Independent of event instrumentation.
 
-- [ ] T047 [P] [US5] Implement an RFC 4180 CSV serialiser in `src/lib/analytics/csv.ts` (quoting/escaping, streaming-friendly) with unit tests in `src/__tests__/analytics/csv.test.ts`
-- [ ] T048 [US5] Implement `GET /api/admin/leads` in `src/app/api/admin/leads/route.ts` (pagination, `q` name/email search, date range, `syncStatus` filter — reads `assessment_sessions` directly under RLS)
-- [ ] T049 [US5] Implement `GET /api/admin/leads/export` in `src/app/api/admin/leads/export/route.ts` (streamed CSV of the filtered set, `Content-Disposition: attachment`)
-- [ ] T050 [P] [US5] Build the `LeadsTable` and `SyncHealthPanel` components in `src/components/admin/` (sync-health shows `keapSyncError`; healthy empty state when all synced)
-- [ ] T051 [US5] Build the Leads page `src/app/admin/leads/page.tsx` (Server Component) with search, date-range, pagination, export button, and the sync-health panel
-- [ ] T052 [P] [US5] Extend `tests/e2e/admin-dashboard.spec.ts` with leads assertions (search, date filter, CSV export contents, sync-health panel against a seeded failed record)
+- [X] T047 [P] [US5] Implement an RFC 4180 CSV serialiser in `src/lib/analytics/csv.ts` (quoting/escaping, streaming-friendly) with unit tests in `src/__tests__/analytics/csv.test.ts` — 14 tests covering quoting, escaping, CSV-injection neutralisation, sync + async iterables, and empty sources
+- [X] T048 [US5] Implement `GET /api/admin/leads` in `src/app/api/admin/leads/route.ts` (pagination, `q` name/email search, date range, `syncStatus` filter — reads `assessment_sessions` directly under RLS) — backed by `src/lib/admin/leads-data.ts`; traffic source derived from session UTMs via `classifyAttribution` (referrer-only attribution would require an RPC since `assessment_events` has no `authenticated` SELECT policy — deferred)
+- [X] T049 [US5] Implement `GET /api/admin/leads/export` in `src/app/api/admin/leads/export/route.ts` (streamed CSV of the filtered set, `Content-Disposition: attachment`) — uses `iterateLeadsForExport` (500-row paging) and `streamCsv` so memory stays bounded; CSV columns match the contract incl. Overall %, Balance Score, Results URL (built from `NEXT_PUBLIC_BASE_URL`)
+- [X] T050 [P] [US5] Build the `LeadsTable` and `SyncHealthPanel` components in `src/components/admin/` (sync-health shows `keapSyncError`; healthy empty state when all synced) — table is a client component (search/pagination via URL + `useTransition`); panel is a server component with three visual states (failed/retrying list, healthy success banner, neutral unavailable)
+- [X] T051 [US5] Build the Leads page (Server Component) with search, date-range, pagination, export button, and the sync-health panel — placed at `src/app/admin/(dashboard)/leads/page.tsx` to inherit the dashboard layout (the original task path predated the `(dashboard)` route group); sync-health panel reads the failed+retrying slice for the same range alongside the paginated table
+- [X] T052 [P] [US5] Extend `tests/e2e/admin-dashboard.spec.ts` with leads assertions (search, date filter, CSV export contents, sync-health panel against a seeded failed record) — added 6 tests covering search URL update, sync-status filter, export href shape, CSV `Content-Type`/`Content-Disposition`/header row, and the panel's failed-or-healthy visibility
 
 **Checkpoint**: All five user stories independently functional
 
@@ -173,14 +173,14 @@ Single Next.js web app. New code under `src/app/admin/`, `src/app/api/`, `src/co
 
 **Purpose**: Quality, performance, and validation across all stories
 
-- [ ] T053 [P] Verify defined empty states render for every chart and table on an empty date range (FR-043)
-- [ ] T054 [P] Responsive check at 375 / 768 / 1024 / 1440 px and light/dark contrast (≥4.5:1) across all dashboard views per CLAUDE.md UI rules; ensure all clickable elements have `cursor-pointer`
+- [X] T053 [P] Verify defined empty states render for every chart and table on an empty date range (FR-043) — audited all four views: funnel (`EmptyState` when `funnel[0].count === 0`), acquisition (`EmptyState` when `sources.length === 0`; added inline empty branch to `LandingPaths` for the defensive case where sources exist but no paths), outcomes (`EmptyState` when `completers === 0`; `ArchetypeChart` + `DeviceSplitChart` have inline `NoData`; `ScoreBandChart` + `ElementAveragesChart` always render fixed buckets and are gated by the page), leads (inline "No leads match the current filters." in the table body, healthy banner in `SyncHealthPanel`)
+- [X] T054 [P] Responsive check at 375 / 768 / 1024 / 1440 px and light/dark contrast (≥4.5:1) across all dashboard views per CLAUDE.md UI rules; ensure all clickable elements have `cursor-pointer` — code audit only (no live browser): every interactive element (`<button>`, `<a>`, `<Link>`, `<select>`, date `<input>`, sign-out form button, login submit, pagination, export link, preset buttons, sync filter, search submit/clear) has `cursor-pointer`; pagination buttons additionally carry `disabled:cursor-not-allowed`. Responsive: header + filter rows use `flex-wrap`; tables use `overflow-x-auto`; outcomes grid uses `grid-cols-2 max-md:grid-cols-1`; layout pads down with `max-md:px-space-4`. Light/dark contrast: all UI uses `theme-text` / `theme-text-muted` against `theme-bg` / `theme-bg-2` so it inherits the existing app's verified contrast tokens. Visual cross-breakpoint verification deferred until live Supabase enables a populated dashboard.
 - [ ] T055 Verify bot, spam, and internal-traffic exclusion against seeded data, including the "include internal" toggle (FR-023, SC-011)
 - [ ] T056 Performance check: dashboard view p95 < 2s on a 30-day window, `POST /api/events` p95 < 150ms, CSV export of a 1-month range < 10s (SC-008, SC-010)
 - [ ] T057 [P] Run the full `quickstart.md` manual smoke test (steps 6.1–6.15) and confirm all pass
-- [ ] T058 [P] Update `CLAUDE.md`: add specs/005 to the repo layout and Workflow Status, and remove the duplicate "Active Technologies" block left by the agent-context script
-- [ ] T059 Run `npm run lint`, `npm test`, and `npm run test:e2e`; fix any failures
-- [ ] T060 Confirm no secrets are committed and the service role key is referenced only by `src/scripts/provision-admin.ts` (FR-010)
+- [X] T058 [P] Update `CLAUDE.md`: add specs/005 to the repo layout and Workflow Status, and remove the duplicate "Active Technologies" block left by the agent-context script — added specs/005 to the Entry-Point Documents table; collapsed the duplicate Active Technologies block into the canonical bulleted list (with Supabase Auth + `assessment_events` added); added US1–US5 status to Workflow Status and dated entries (2026-05-19 / 2026-05-20) to Recent Changes
+- [ ] T059 Run `npm run lint`, `npm test`, and `npm run test:e2e`; fix any failures — partial: `npx tsc --noEmit` clean, `npx vitest run` 149/149 green. `npm run lint` is unconfigured (interactive prompt asks to set up ESLint — out of scope for this task). `npm run test:e2e` is gated on the live Supabase + provisioned admin account (T006), so it stays blocked alongside T055/T056/T057.
+- [X] T060 Confirm no secrets are committed and the service role key is referenced only by `src/scripts/provision-admin.ts` (FR-010) — confirmed: `SUPABASE_SERVICE_ROLE_KEY` referenced only in `src/scripts/provision-admin.ts` (a node CLI never imported by the Next app), `.env.local.example` (placeholder), and spec/quickstart docs; `.env.local` is gitignored and not tracked.
 
 ---
 

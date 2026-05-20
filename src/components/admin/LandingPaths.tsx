@@ -12,6 +12,11 @@ export function LandingPaths({
       <h3 className="text-text-sm font-medium uppercase tracking-[0.15em] text-theme-text-muted">
         Top landing paths
       </h3>
+      {paths.length === 0 ? (
+        <p className="text-text-sm text-theme-text-muted">
+          No landing paths recorded for this range.
+        </p>
+      ) : (
       <div className="flex flex-col gap-space-2">
         {paths.map((p) => (
           <div key={p.path} className="flex flex-col gap-space-1">
@@ -32,6 +37,7 @@ export function LandingPaths({
           </div>
         ))}
       </div>
+      )}
     </div>
   );
 }

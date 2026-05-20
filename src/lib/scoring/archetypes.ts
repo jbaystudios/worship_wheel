@@ -69,6 +69,31 @@ const ARCHETYPES: ArchetypeDefinition[] = [
   },
 ];
 
+/** Display names for every defined archetype key, for back-references like the admin Leads view. */
+export const ARCHETYPE_NAMES: Record<string, string> = Object.fromEntries(
+  ARCHETYPES.map((a) => [a.key, a.name]),
+);
+
+/**
+ * Resolves an archetype key to its display name. Handles fallback keys of the
+ * form `fallback_<ELEMENT>` (produced by `matchArchetype` when no rule fires)
+ * by reconstructing "The <Element> Player". Unknown keys round-trip through
+ * `humanize` so the leads/outcomes views never render a raw snake_case key.
+ */
+export function archetypeNameFromKey(key: string): string {
+  if (ARCHETYPE_NAMES[key]) return ARCHETYPE_NAMES[key];
+  if (key.startsWith('fallback_')) {
+    const code = key.slice('fallback_'.length) as ElementCode;
+    const name = ELEMENT_NAMES[code];
+    if (name) return `The ${name} Player`;
+  }
+  return key
+    .split('_')
+    .filter(Boolean)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' ');
+}
+
 /**
  * Match a profile archetype based on element scores.
  * Evaluates archetypes in priority order; returns the first match.
