@@ -23,6 +23,7 @@ The **Worship Wheel** is an interactive, web-based self-diagnosis quiz for worsh
 | API contracts | `specs/001-worship-wheel-assessment/contracts/api.md` | Endpoints, Keap integration, DataLayer events |
 | Client PRD | `plan/PRD - Worship Wheel Assessment Tool.md` | Non-technical PRD for client review |
 | Source docs | `docs/` | Original concept, questions, and PRD from Charl |
+| **Project state** | `project-management/STATUS.md` + `project-management/v1-launch/` | Current app state, v1 launch (2026-06-12) deliverables, owners, timeline, risks. Use the `project-manager` skill for PM-style questions. |
 
 ## Repository Layout
 
@@ -33,6 +34,7 @@ Worship Wheel/
 ├── specs/              # Feature specs (001, 002, 003)
 ├── plan/               # PRD and action lists
 ├── docs/               # Source concept documents from client
+├── project-management/ # Project execution state: status, v1 deliverables, owners, timeline, risks
 ├── src/
 │   ├── app/            # Next.js App Router: /, /assessment, /results, /api
 │   ├── components/
