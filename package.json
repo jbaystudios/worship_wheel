@@ -12,6 +12,8 @@
     "admin:provision": "tsx src/scripts/provision-admin.ts"
   },
   "dependencies": {
+    "@fontsource/montserrat": "^5.2.8",
+    "@react-pdf/renderer": "^4.5.1",
     "@supabase/ssr": "^0.10.3",
     "@supabase/supabase-js": "^2.49.0",
     "@vercel/og": "^0.6.0",

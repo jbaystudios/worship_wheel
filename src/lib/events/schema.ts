@@ -11,6 +11,7 @@ export const EVENT_TYPES = [
   'question_viewed',
   'question_answered',
   'assessment_submitted',
+  'pdf_downloaded',
 ] as const;
 
 const QUESTION_EVENT_TYPES = new Set(['question_viewed', 'question_answered']);
