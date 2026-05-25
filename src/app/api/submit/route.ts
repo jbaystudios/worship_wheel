@@ -7,6 +7,7 @@ import { getScoreBand, getCtaBand } from '@/lib/scoring/bands';
 import { ELEMENT_CODES, ELEMENT_NAMES } from '@/types';
 import type { ElementCode, ElementScore } from '@/types';
 import { createPublicClient } from '@/lib/supabase/public';
+import { syncSessionToKeap } from '@/lib/keap/sync';
 
 // ── Zod validation ────────────────────────────────────────────
 
@@ -194,12 +195,26 @@ export async function POST(request: Request) {
           utm_term: utmParams?.term ?? null,
           utm_content: utmParams?.content ?? null,
           anon_session_id: anonSessionId ?? null,
-          // keap_sync_status defaults to 'pending'. The deduplicated Keap
-          // contact sync (contracts/api.md — PUT /v1/contacts with
-          // duplicate_option) runs as a separate follow-up step.
+          // keap_sync_status defaults to 'pending' here; the Keap sync below
+          // updates it to 'synced' or 'failed' out-of-band.
         });
       if (insertError) {
         console.error('assessment_sessions insert failed:', insertError.message);
+      } else {
+        // Fire-and-forget Keap push (D-3). The user response must not block on
+        // Keap latency; the sync writes its own status back to the row.
+        const baseUrl =
+          process.env.NEXT_PUBLIC_BASE_URL ??
+          new URL(request.url).origin;
+        void syncSessionToKeap({
+          resultId,
+          firstName,
+          email: normalizedEmail,
+          overallScore: results.overallScore,
+          overallPercentage: results.overallPercentage,
+          archetypeKey: results.archetype.key,
+          resultsUrl: `${baseUrl}/results/${resultId}`,
+        });
       }
     } catch (err) {
       // Non-fatal: the user still receives results (graceful degradation).
