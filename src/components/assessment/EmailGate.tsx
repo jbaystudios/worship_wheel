@@ -112,10 +112,10 @@ export function EmailGate({ onSubmit, isSubmitting }: EmailGateProps) {
         {/* Honeypot — hidden from humans */}
         <input type="text" name="website" className="hidden" tabIndex={-1} autoComplete="off" />
 
-        {/* Submit */}
+        {/* Submit — disabled until consent is checked (consent is mandatory for v1) */}
         <button
           type="submit"
-          disabled={isSubmitting}
+          disabled={isSubmitting || !consent}
           className="w-full rounded-sm bg-btn-primary py-[10px] text-text-base font-bold text-btn-primary-text hover:bg-btn-primary-hover hover:text-btn-primary-hover-text transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
         >
           {isSubmitting ? 'Loading...' : 'See My Results'}
