@@ -228,7 +228,7 @@ export default function AssessmentPage() {
   return (
     <main className="flex min-h-screen flex-col">
       {/* Navbar */}
-      <nav className="flex items-center justify-center px-space-8 py-space-3 max-md:py-space-2 bg-neutral-0">
+      <nav className="flex items-center justify-center px-space-8 py-space-1 bg-neutral-0">
         <Image
           src="/logo.svg"
           alt="Worship Guitar Skills"
