@@ -77,16 +77,10 @@ describe('matchArchetype', () => {
     expect(result.key).toBe('balanced_beginner');
   });
 
-  it('does not match Balanced Beginner when any element > 4', () => {
-    const result = matchArchetype(scores([3, 3, 3, 5, 3, 3, 3, 3]));
-    expect(result.key).not.toBe('balanced_beginner');
-  });
-
-  it('does not match Balanced Beginner when SD > 1.5', () => {
-    // [1, 4, 1, 4, 1, 4, 1, 4] → high SD but all ≤ 4
-    const result = matchArchetype(scores([1, 4, 1, 4, 1, 4, 1, 4]));
-    expect(result.key).not.toBe('balanced_beginner');
-  });
+  // Note: post-D-AC there is no observable difference between "matches the
+  // Balanced Beginner rule" and "fell through to the default" — both return
+  // `balanced_beginner`. The pre-D-AC negative assertions for this rule were
+  // removed because they are no longer falsifiable through the public API.
 
   // ── Uneven Intermediate ────────────────────────────────────
   // max - min ≥ 5, SD > 2.0, overall ≥ 30
@@ -113,20 +107,65 @@ describe('matchArchetype', () => {
     expect(result.key).toBe('campfire_strummer');
   });
 
-  // ── Fallback ───────────────────────────────────────────────
+  // ── Default fallback (D-AC) ────────────────────────────────
+  // When no named rule matches, every profile lands in Balanced Beginner so
+  // the Keap archetype sequence (D-4) always has somewhere to fire.
 
-  it('assigns fallback archetype based on strongest element when no match', () => {
-    // No specific archetype matches: moderate scores, not uneven enough
+  const NAMED_KEYS = new Set([
+    'campfire_strummer',
+    'rhythm_machine',
+    'theory_head',
+    'almost_there_player',
+    'balanced_beginner',
+    'uneven_intermediate',
+  ]);
+
+  it('returns Balanced Beginner when no specific rule matches', () => {
     //                              FB HM ML RH TO TH TE AU
+    // All 5s: too high for Balanced Beginner (≤4), too low for Almost-There
+    // (overall=40 < 55), no spread for Uneven Intermediate. Pre-D-AC this
+    // hit the fallback_ path.
     const result = matchArchetype(scores([5, 5, 5, 5, 5, 5, 5, 5]));
-    expect(result.key).toMatch(/^fallback_/);
+    expect(result.key).toBe('balanced_beginner');
   });
 
-  it('fallback uses the strongest element code', () => {
-    // TH is highest at 6
+  it('never returns a fallback_<ELEMENT> key', () => {
     const result = matchArchetype(scores([4, 4, 4, 4, 4, 6, 4, 4]));
-    expect(result.key).toBe('fallback_TH');
-    expect(result.name).toContain('Theory');
+    expect(result.key).not.toMatch(/^fallback_/);
+    expect(NAMED_KEYS.has(result.key)).toBe(true);
+  });
+
+  // ── Coverage sweep (D-AC Path A proof) ─────────────────────
+  // Sweep the [0,10]⁸ score space at granularity 2 (6⁸ = 1,679,616 profiles)
+  // and assert every result lands in one of the 6 named archetypes — no
+  // fallback_ keys, no unknown keys. This locks in D-AC's invariant.
+
+  it('every (FB..AU) ∈ {0,2,4,6,8,10}⁸ profile lands in a named archetype', () => {
+    const values = [0, 2, 4, 6, 8, 10];
+    let total = 0;
+    const seen = new Map<string, number>();
+    for (const fb of values)
+      for (const hm of values)
+        for (const ml of values)
+          for (const rh of values)
+            for (const to of values)
+              for (const th of values)
+                for (const te of values)
+                  for (const au of values) {
+                    const result = matchArchetype(scores([fb, hm, ml, rh, to, th, te, au]));
+                    if (!NAMED_KEYS.has(result.key)) {
+                      throw new Error(
+                        `unnamed key "${result.key}" for [${fb},${hm},${ml},${rh},${to},${th},${te},${au}]`,
+                      );
+                    }
+                    seen.set(result.key, (seen.get(result.key) ?? 0) + 1);
+                    total += 1;
+                  }
+    expect(total).toBe(values.length ** 8);
+    // Every named archetype is reachable at this granularity.
+    for (const key of NAMED_KEYS) {
+      expect(seen.get(key) ?? 0).toBeGreaterThan(0);
+    }
   });
 
   // ── Every archetype has required fields ────────────────────
@@ -139,7 +178,7 @@ describe('matchArchetype', () => {
       [7, 7, 7, 7, 7, 7, 7, 7],  // Almost-There
       [3, 3, 3, 3, 3, 3, 3, 3],  // Balanced Beginner
       [5, 7, 3, 5, 2, 5, 5, 3],  // Uneven Intermediate
-      [5, 5, 5, 5, 5, 5, 5, 5],  // Fallback
+      [5, 5, 5, 5, 5, 5, 5, 5],  // Defaults to Balanced Beginner
     ];
 
     for (const profile of profiles) {

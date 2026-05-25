@@ -3,6 +3,12 @@ import { ELEMENT_NAMES } from '@/types';
 
 type Scores = Record<ElementCode, number>;
 
+const DEFAULT_ARCHETYPE: Archetype = {
+  key: 'balanced_beginner',
+  name: 'The Balanced Beginner',
+  message: 'Great news — you have an even foundation. Everything will grow together.',
+};
+
 interface ArchetypeDefinition extends Archetype {
   match: (s: Scores, overall: number, sd: number) => boolean;
 }
@@ -75,10 +81,10 @@ export const ARCHETYPE_NAMES: Record<string, string> = Object.fromEntries(
 );
 
 /**
- * Resolves an archetype key to its display name. Handles fallback keys of the
- * form `fallback_<ELEMENT>` (produced by `matchArchetype` when no rule fires)
- * by reconstructing "The <Element> Player". Unknown keys round-trip through
- * `humanize` so the leads/outcomes views never render a raw snake_case key.
+ * Resolves an archetype key to its display name. The `fallback_<ELEMENT>`
+ * branch handles legacy rows written before D-AC (2026-05-25) — `matchArchetype`
+ * no longer produces those keys. Unknown keys round-trip through `humanize` so
+ * the leads/outcomes views never render a raw snake_case key.
  */
 export function archetypeNameFromKey(key: string): string {
   if (ARCHETYPE_NAMES[key]) return ARCHETYPE_NAMES[key];
@@ -95,9 +101,10 @@ export function archetypeNameFromKey(key: string): string {
 }
 
 /**
- * Match a profile archetype based on element scores.
- * Evaluates archetypes in priority order; returns the first match.
- * Falls back to strongest-element-based archetype if no match.
+ * Match a profile archetype based on element scores. Evaluates archetypes in
+ * priority order; returns the first match. When no rule fires, returns
+ * Balanced Beginner so every user lands in one of the 6 named archetypes —
+ * required by D-3 so the right Keap sequence can fire (no `fallback_*` keys).
  */
 export function matchArchetype(scores: Scores): Archetype {
   const overall = Object.values(scores).reduce((sum, v) => sum + v, 0);
@@ -109,15 +116,5 @@ export function matchArchetype(scores: Scores): Archetype {
     }
   }
 
-  // Fallback: based on strongest element
-  const entries = Object.entries(scores) as [ElementCode, number][];
-  entries.sort((a, b) => b[1] - a[1]);
-  const strongest = entries[0][0];
-  const strongestName = ELEMENT_NAMES[strongest];
-
-  return {
-    key: `fallback_${strongest}`,
-    name: `The ${strongestName} Player`,
-    message: `Your strongest area is ${strongestName}. Keep building on that foundation while developing your other skills.`,
-  };
+  return DEFAULT_ARCHETYPE;
 }
