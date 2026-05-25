@@ -1,6 +1,6 @@
 # v1 Launch — Deliverables by Owner
 
-Launch date: **2026-06-12** · Today: **2026-05-22** · Days remaining: **21**
+Launch date: **2026-06-12** · Today: **2026-05-25** · Days remaining: **18**
 
 Each item has an owner, a status, a target date, and a definition of done. If any of those four are blank, the [`project-manager`](../../.claude/skills/project-manager/SKILL.md) skill should flag it.
 
@@ -58,29 +58,37 @@ Each item has an owner, a status, a target date, and a definition of done. If an
 - **Notes:** Use a config flag, don't delete — this is coming back in v1.1
 
 ### D-2 · Printable PDF download from results page
-- **Status:** 🔴 Not started
+- **Status:** 🟡 **Spec drafted 2026-05-25** — implementation pending
 - **Target delivery:** **2026-05-27 (Wed)**
+- **Spec:** [`/specs/006-results-pdf-download/spec.md`](../../specs/006-results-pdf-download/spec.md)
+- **Approach (R-4 resolved 2026-05-25):** `@react-pdf/renderer` rendered server-side at `/api/results/[resultId]/pdf`, reads from Supabase via service-role client. Two button placements: top of results + end of report.
 - **Done when:**
-  - "Download PDF" CTA on results page produces a styled PDF including: user's name (if captured), radar chart, per-dimension scores, recommendations
-  - PDF renders consistently across major browsers (Chrome, Safari, Firefox, mobile Safari)
-  - PDF download event tracked in `assessment_events` for the admin dashboard
-- **Dependencies:** PDF rendering approach decision by 2026-05-25 (Mon) — see [`risks.md#R-4`](risks.md)
-- **Note:** Ships with Derick's first-pass design; Charl reviews post-build via C-3
+  - "Download PDF" CTA on results page (top + bottom) produces a styled PDF including: user's name, radar chart, per-dimension scores, archetype, recommendations
+  - PDF renders consistently across Preview, Adobe Reader, Chrome built-in viewer, mobile Safari
+  - No content cut at page boundaries on A4 print test
+  - PDF download event (`pdf_downloaded`) tracked in `assessment_events` for the admin dashboard (requires extending the event_type CHECK constraint)
+- **Dependencies:** ✅ R-4 (PDF approach) resolved; ✅ `src/lib/supabase/service.ts` (already exists from D-3)
+- **Note:** Ships with Derick's first-pass design; Charl reviews post-build via C-3. 6 open questions in the spec mostly default-resolvable without him.
 
 ### D-3 · Keap push integration
-- **Status:** 🔴 Not started — **unblocked 2026-05-22** (Keap Service Account Key in `.env.local`)
+- **Status:** ✅ **DONE 2026-05-25 (MVP)** — live test passed, contact `Worship Wheel Test` (Keap id 88271) shows under the tag filter with all 4 custom fields populated. Visible in Keap admin at *Contacts → With ANY of these Tags: 05. WGS System → 10. Marketing 3755 WGS Worship Wheel Assessment 01. START*. Hand-off to D-4.
 - **Target delivery:** **2026-05-28 (Thu)**
+- **MVP scope decision (2026-05-25):** Cut from 19 tags + 15 custom fields to **1 completion tag + 4 custom fields**. A single completion tag fires a Keap automation that branches on the `worship_wheel_archetype` custom field into the right follow-up sequence. Broader band/weakness tagging is **parked, not killed** — can return post-launch if segmentation needs grow.
 - **Done when:**
-  - Completed assessments create or update a Keap contact via the REST API
-  - **Archetype tag applied** to the contact (one of 6 archetype tags) so the correct sequence can fire from D-4
-  - Score-based tags also applied per the tagging schema
-  - Failures logged to `assessment_events` and surface in the admin sync-health panel
-  - Retry/idempotency verified (a re-submitted assessment doesn't create a duplicate contact)
-- **Dependencies:** ✅ Keap Service Account Key (resolved 2026-05-22); D-AC complete so the tag set is finalised before wiring
+  - ✅ Completed assessments create or update a Keap contact via the REST API (`PUT /v1/contacts` with `duplicate_option: Email` — `src/lib/keap/client.ts`, wired from `src/app/api/submit/route.ts`)
+  - ✅ 4 custom fields populated: archetype (id=265), results URL (267), overall score (269), overall percentage (271)
+  - ✅ **Completion tag applied** — `KEAP_TAG_WW_COMPLETED=3967` (`10. Marketing 3755 WGS Worship Wheel Assessment 01. START`, category `05. WGS System`)
+  - ✅ Failures surface in the admin sync-health panel (`assessment_sessions.keap_sync_status` writeback via service-role client)
+  - ✅ Live end-to-end test passed 2026-05-25 — contact id 88271 created with all 4 custom fields and the completion tag in <2s
+  - ✅ Retry/idempotency live-verified 2026-05-25 — second submission with same email + different archetype: no duplicate contact created, `worship_wheel_archetype` overwritten from `balanced_beginner` → `theory_head`, tag count stayed at 1
+- **Remaining work to close:**
+  1. Run one production submission and confirm the contact, tag 3967, and all 4 custom field values land in Keap (live retake test also verifies idempotency)
+  2. Build the Keap automation that fires on tag 3967 and branches on the `worship_wheel_archetype` custom field — this is the D-4 hand-off
+- **Dependencies:** ✅ Keap Service Account Key (resolved 2026-05-22); ✅ D-AC closed (2026-05-25)
 
 ### D-AC · Archetype coverage — every score combination must land in a named archetype
-- **Status:** 🔴 Not started — **gates D-3 and C-1**
-- **Target delivery:** **2026-05-25 (Mon)**
+- **Status:** ✅ **Closed 2026-05-25 (Path D)** — `matchArchetype` now defaults to Balanced Beginner when no rule fires; `fallback_<ELEMENT>` write path removed from `src/lib/scoring/archetypes.ts`. A 1.68M-profile coverage sweep (`src/__tests__/unit/archetype.test.ts`) locks the invariant. The `archetypeNameFromKey` reader keeps a `fallback_` back-compat branch for any pre-D-AC rows already in Supabase.
+- **Target delivery:** ~~2026-05-25 (Mon)~~ — met
 - **Done when:** One of the following is true and demonstrated:
   - **Path A — Prove coverage:** Audit shows the existing 6 archetype rules already cover 100% of the `(score₁,…,score₈) ∈ [0,10]⁸` space. Property-test or exhaustive sweep added under `src/__tests__/` to lock this in.
   - **Path B — Expand archetypes:** Add 1+ new archetype rules to close gaps. **Each new archetype adds 3 emails to Charl's C-1 scope** — feed the change back to Charl immediately.

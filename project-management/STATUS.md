@@ -1,6 +1,6 @@
 # Worship Wheel — Project Status
 
-**Last updated:** 2026-05-22
+**Last updated:** 2026-05-25
 **Next milestone:** v1 controlled-cohort launch — **2026-06-12** (21 days out)
 **Active branch:** `005-admin-dashboard`
 
@@ -38,7 +38,7 @@
 | Blocker | Owner | Impact | Status |
 |---|---|---|---|
 | **Charl's email-copy commit (C-1)** | Charl (request from Derick) | D-4 sequence build depends on copy in hand 2026-05-29. **Scope = 6 archetype sequences × 3 emails = 18 emails.** | **No written commit yet** — Derick's target only |
-| **Archetype coverage (D-AC)** | Derick | Code currently has a `fallback_<ELEMENT>` path that fires for plausible inputs (e.g. all-6s scores). Product directive: no fallback. Must resolve before D-3 and C-1 can lock final tag set. | Target 2026-05-25 (Mon) |
+| **Keap automation build (D-4)** | Derick | D-3 live-tested 2026-05-25 (contact 88271 created with tag + 4 custom fields). Next: build the automation that fires on tag 3967 and branches on `worship_wheel_archetype` into the right follow-up sequence. Depends on Charl's C-1 email copy (2026-05-29). | Active |
 
 ## What's next
 
@@ -52,6 +52,11 @@
 
 ## Recent changes
 
+- 2026-05-25 — 📝 **Spec 006 drafted (Results PDF download — D-2)**: chosen approach `@react-pdf/renderer` server-side, reading from Supabase via service-role client. Top + bottom button placements. Resolves R-4. 6 open questions in spec, mostly default-resolvable. [`/specs/006-results-pdf-download/spec.md`](../specs/006-results-pdf-download/spec.md)
+- 2026-05-25 — ✅ **D-3 closed + idempotency verified**: live test created contact 88271 with tag 3967 + 4 custom fields. Switched archetype field to stable snake_case keys (e.g. `theory_head` not `The Theory Head`) for automation-branch stability. Second submission (same email, different archetype) confirmed dedup: contact 88271 updated in place, `worship_wheel_archetype` overwritten, tag count stayed at 1. Status writeback in <2s.
+- 2026-05-25 — ✅ **D-AC closed** (Path D): `matchArchetype` defaults to Balanced Beginner when no rule fires; `fallback_<ELEMENT>` write path removed; 1.68M-profile coverage sweep test locks the invariant.
+- 2026-05-25 — 🔧 **D-3 MVP-simplified**: Scope cut from 19 tags + 15 custom fields to **1 completion tag + 4 custom fields** (archetype, results URL, overall score, overall percentage). Single tag fires a Keap automation that branches on the `worship_wheel_archetype` custom field into the right follow-up sequence. Broader band/weakness tagging is parked, not killed — can return post-launch. 4 field IDs populated in `.env.local`; only `KEAP_TAG_WW_COMPLETED` remains.
+- 2026-05-25 — ✅ **D-3 code shipped**: `src/lib/keap/{client,sync}.ts` + `src/lib/supabase/service.ts` push completed assessments via `PUT /v1/contacts` (deduped by email) + tag. Non-blocking call wired into `/api/submit`; `keap_sync_status` writeback feeds the admin sync-health panel.
 - 2026-05-22 — 🟦 **005 admin dashboard polish parked** for v1 launch focus. Dashboard remains code-complete and will be used for v1 monitoring at its current state. Polish (T006 migration + T055/T056/T057/T059) resumes post-launch.
 - 2026-05-22 — ✅ **R-3 resolved:** Derick has access to Vercel `office-3285` team. D-6 (production deploy) unblocked.
 - 2026-05-22 — ✅ **R-1 resolved:** Keap Service Account Key added to `.env.local`. D-3 (Keap push) unblocked.

@@ -58,5 +58,6 @@ These need resolution before scope is fully locked. Tracked in [`risks.md`](risk
 - [`deliverables.md`](deliverables.md) — work breakdown by owner
 - [`timeline.md`](timeline.md) — week-by-week schedule
 - [`risks.md`](risks.md) — blockers and dependencies
+- [`qa-log.md`](qa-log.md) — running list of manual QA checks (walked with Charl pre-launch)
 - [`../STATUS.md`](../STATUS.md) — overall project state
 - [`/specs/001-worship-wheel-assessment/spec.md`](../../specs/001-worship-wheel-assessment/spec.md) — full functional spec
