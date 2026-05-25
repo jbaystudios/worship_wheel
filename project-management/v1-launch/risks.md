@@ -1,6 +1,6 @@
 # v1 Launch — Risks & Blockers
 
-**As of 2026-05-22.** Updated whenever a new risk is identified or an existing one changes state.
+**As of 2026-05-25.** Updated whenever a new risk is identified or an existing one changes state.
 
 Severity:
 - 🔴 **High** — actively blocks the critical path or threatens the 2026-06-12 date
@@ -22,11 +22,12 @@ Severity:
 - **Contingency if C-1 slips to 2026-06-02:** D-4 + D-5b compress into ~3 working days; week-3 buffer evaporates.
 - **Contingency if C-1 slips past 2026-06-05:** Launch date moves.
 
-## 🟡 R-4 · PDF rendering approach undecided
+## 🟢 R-4 · PDF rendering approach — RESOLVED 2026-05-25
 
-- **Impact:** SSR (`@vercel/og` / Puppeteer) vs client-side (`jsPDF`, `html2pdf`) is non-trivial. Wrong call costs a day of rework — and D-2 now targets 2026-05-27 (Wed), with no slack.
-- **Mitigation:** Decision deadline 2026-05-25 (Mon). Default if undecided: client-side `html2pdf` for delivery speed; revisit if fidelity is poor.
-- **Trigger for escalation:** No decision by 2026-05-25 (Mon)
+- **Decision:** `@react-pdf/renderer` rendered server-side at `/api/results/[resultId]/pdf`, reading from Supabase via the existing service-role client.
+- **Why this over alternatives:** `html2pdf` was the R-4 default but produces a screenshot-style PDF (text not selectable, charts blur, fiddly page breaks) — fails the "professional report" bar Derick set. Puppeteer would give pixel-perfect output but adds a ~50MB bundle and 3–5s cold starts on Vercel, and the results page is sessionStorage-only so it'd need a separate server-rendered print route anyway.
+- **Trade-off accepted:** a separate PDF layout component (not the on-screen UI). That separation is actually what makes the PDF look like a designed report instead of a screenshot of a web page.
+- **Spec:** [`/specs/006-results-pdf-download/spec.md`](../../specs/006-results-pdf-download/spec.md)
 
 ## 🟡 R-5 · Cohort access mechanism undefined
 

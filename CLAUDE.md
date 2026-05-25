@@ -18,6 +18,7 @@ The **Worship Wheel** is an interactive, web-based self-diagnosis quiz for worsh
 | Scoring optimisation | `specs/002-assessment-scoring-optimization/spec.md` | Algorithm refinements, checklist response expansion |
 | Results page | `specs/003-results-page/spec.md` | Results UI/UX specification |
 | Admin dashboard | `specs/005-admin-dashboard/spec.md` | Stakeholder analytics dashboard (auth, funnel, acquisition, outcomes, leads + CRM ops) |
+| Results PDF download | `specs/006-results-pdf-download/spec.md` | Server-side PDF report via `@react-pdf/renderer`; reads from Supabase service-role; tracks `pdf_downloaded` event (D-2) |
 | Implementation plan | `specs/001-worship-wheel-assessment/plan.md` | 9-phase plan (A: Figma Design → I: Testing & Launch) |
 | Data model | `specs/001-worship-wheel-assessment/data-model.md` | Supabase schema, config shapes, question selection |
 | API contracts | `specs/001-worship-wheel-assessment/contracts/api.md` | Endpoints, Keap integration, DataLayer events |
