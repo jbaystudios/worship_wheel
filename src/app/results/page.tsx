@@ -9,6 +9,8 @@ import { ElementBreakdown } from '@/components/results/ElementBreakdown';
 import { ArchetypeCard } from '@/components/results/ArchetypeCard';
 import { CtaBanner } from '@/components/results/CtaBanner';
 import { ShareSection } from '@/components/results/ShareSection';
+import { DownloadPdfButton } from '@/components/results/DownloadPdfButton';
+import { FEATURES } from '@/lib/features';
 import type { AssessmentResult } from '@/types';
 
 interface StoredResult extends AssessmentResult {
@@ -39,7 +41,7 @@ export default function ResultsPage() {
   if (!result) {
     return (
       <main className="flex min-h-screen flex-col">
-        <nav className="flex items-center justify-center px-space-8 py-space-3 max-md:py-space-2 bg-neutral-0">
+        <nav className="flex items-center justify-center px-space-8 py-space-1 bg-neutral-0">
           <Image src="/logo.svg" alt="Worship Guitar Skills" width={62} height={62} priority />
         </nav>
         <section className="relative flex flex-1 flex-col items-center justify-center px-site-margin py-section-md max-md:py-space-6">
@@ -69,7 +71,7 @@ export default function ResultsPage() {
   return (
     <main className="flex min-h-screen flex-col bg-theme-bg">
       {/* Navbar */}
-      <nav className="flex items-center justify-center px-space-8 py-space-3 max-md:py-space-2 bg-neutral-0">
+      <nav className="flex items-center justify-center px-space-8 py-space-1 bg-neutral-0">
         <Image src="/logo.svg" alt="Worship Guitar Skills" width={62} height={62} priority />
       </nav>
 
@@ -87,6 +89,12 @@ export default function ResultsPage() {
             <p className="max-w-[600px] text-text-lg max-md:text-text-base text-theme-text-muted">
               Here&apos;s how your musical skills stack up across the 8 elements of worship guitar.
             </p>
+            <DownloadPdfButton
+              resultId={result.sessionId}
+              firstName={result.firstName}
+              placement="top"
+              className="mt-space-2"
+            />
           </div>
           <RadarChart elementScores={result.elementScores} />
         </div>
@@ -117,12 +125,24 @@ export default function ResultsPage() {
           <ArchetypeCard
             archetypeName={result.archetype.name}
             archetypeMessage={result.archetype.message}
+            showVsl={FEATURES.showVsl}
           />
         </div>
       </section>
 
-      {/* CTA Banner */}
-      <CtaBanner cta={result.cta} overallScore={result.overallScore} />
+      {/* CTA Banner — hidden for MVP per FEATURES.showCta (D-1). */}
+      {FEATURES.showCta && (
+        <CtaBanner cta={result.cta} overallScore={result.overallScore} />
+      )}
+
+      {/* Download PDF (bottom placement — for users who read through) */}
+      <section className="flex w-full justify-center px-site-margin py-space-5">
+        <DownloadPdfButton
+          resultId={result.sessionId}
+          firstName={result.firstName}
+          placement="bottom"
+        />
+      </section>
 
       {/* Share Section */}
       <ShareSection />

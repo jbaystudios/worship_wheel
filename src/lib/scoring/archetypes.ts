@@ -80,6 +80,12 @@ export const ARCHETYPE_NAMES: Record<string, string> = Object.fromEntries(
   ARCHETYPES.map((a) => [a.key, a.name]),
 );
 
+/** Lookup the full Archetype record (name + message) by its key. Undefined for
+ *  unknown keys (legacy fallback_* rows or anything else not in ARCHETYPES). */
+export const ARCHETYPES_BY_KEY: Record<string, Archetype> = Object.fromEntries(
+  ARCHETYPES.map((a) => [a.key, { key: a.key, name: a.name, message: a.message }]),
+);
+
 /**
  * Resolves an archetype key to its display name. The `fallback_<ELEMENT>`
  * branch handles legacy rows written before D-AC (2026-05-25) — `matchArchetype`

@@ -92,3 +92,7 @@ export const trackQuestionAnswered = (questionId: string, questionPosition: numb
   trackEvent('question_answered', { questionId, questionPosition });
 export const trackAssessmentSubmitted = (resultId?: string) =>
   trackEvent('assessment_submitted', resultId ? { resultId } : {});
+
+// Spec 006 (D-2) — fired after the user successfully initiates a PDF download
+// from the results page. anon_session_id ties it back to the funnel session.
+export const trackPdfDownloaded = () => trackEvent('pdf_downloaded');

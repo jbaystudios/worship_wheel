@@ -47,13 +47,15 @@ Each item has an owner, a status, a target date, and a definition of done. If an
 
 ## 👤 Derick Strydom (Technical owner)
 
-### D-1 · Hide VSL / sales-video section on assessment page
-- **Status:** 🔴 Not started
-- **Target delivery:** **2026-05-25 (Mon)**
+### D-1 · Hide VSL / sales-video section on results page
+- **Status:** 🟡 **Code shipped 2026-05-25** — pending responsive cross-width verification
+- **Target delivery:** **2026-05-25 (Mon)** — met
 - **Done when:**
-  - VSL section is hidden via a feature flag or conditional render — easy to re-enable for v1.1
-  - No layout regressions on the assessment page
-  - Verified on desktop and mobile at 375 / 768 / 1024 / 1440 widths
+  - ✅ VSL section + sales CTA hidden via `FEATURES.showVsl` / `FEATURES.showCta` in `src/lib/features.ts` (single source of truth; re-enable for v1.1 = flip the booleans)
+  - ✅ Both gates also applied to the PDF report's archetype page (consistent on-screen + downloaded artefact)
+  - ⏳ No layout regressions on the results page — needs visual check
+  - ⏳ Verified on desktop and mobile at 375 / 768 / 1024 / 1440 widths
+- **Scope note:** the gating covers both the video placeholder inside `ArchetypeCard` and the entire `CtaBanner` component. Components themselves are intact — only the rendering is conditional.
 - **Dependencies:** None
 - **Notes:** Use a config flag, don't delete — this is coming back in v1.1
 

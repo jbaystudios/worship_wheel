@@ -64,6 +64,8 @@ Optional: `/speckit.clarify`, `/speckit.analyze`, `/speckit.checklist`
 Spec Kit artefacts live in `.specify/`. Slash commands live in `.claude/commands/`. The constitution is at `.specify/memory/constitution.md`.
 
 ## Active Technologies
+- TypeScript 5.x, Node.js 20+ + Next.js 14 (App Router), `@react-pdf/renderer` (NEW — ~600 KB gzipped, pure JS), `@supabase/supabase-js` (existing service-role client) (006-results-pdf-download)
+- Supabase Postgres — read `assessment_sessions` row by resultId via service-role; write `pdf_downloaded` events to `assessment_events` (006-results-pdf-download)
 
 - **Runtime**: TypeScript 5.x, Node.js 20+
 - **Framework**: Next.js 14 (App Router), deployed to Vercel
@@ -200,7 +202,6 @@ Full skill reference: `.claude/skills/ui-ux-pro-max/SKILL.md`
 - **Client PRD**: Complete (pending Charl review).
 
 ## Recent Changes
+- 006-results-pdf-download: Added TypeScript 5.x, Node.js 20+ + Next.js 14 (App Router), `@react-pdf/renderer` (NEW — ~600 KB gzipped, pure JS), `@supabase/supabase-js` (existing service-role client)
 - 2026-05-20: 005-admin-dashboard — US5 (leads table, CSV export, Keap sync-health panel) shipped; T053/T054/T058/T060 polish complete.
 - 2026-05-19: 005-admin-dashboard — US1–US4 shipped; introduced `@supabase/ssr` for App Router auth and the `assessment_events` first-party event log.
-- 2026-04-14: Repository reorganised — `specs/`, `plan/`, `docs/` moved from the Brand Guide folder into the Worship Wheel project root so this folder is a self-contained working directory.
-- 002-assessment-scoring-optimization: Existing chart.js, supabase, zod stack retained; no new dependencies.

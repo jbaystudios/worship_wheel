@@ -1,11 +1,15 @@
 interface ArchetypeCardProps {
   archetypeName: string;
   archetypeMessage: string;
+  /** When false (MVP default), the "Watch: Your personalised results explained"
+   *  video placeholder is omitted. Controlled by FEATURES.showVsl in src/lib/features.ts. */
+  showVsl?: boolean;
 }
 
 export function ArchetypeCard({
   archetypeName,
   archetypeMessage,
+  showVsl = true,
 }: ArchetypeCardProps) {
   return (
     <section
@@ -24,27 +28,31 @@ export function ArchetypeCard({
       <p className="max-w-[700px] text-text-lg max-md:text-text-base text-theme-text-muted">
         {archetypeMessage}
       </p>
-      {/* Video placeholder */}
-      <div className="mt-space-3 flex aspect-video w-full max-w-[1024px] flex-col items-center justify-center rounded-sm border border-neutral-700 bg-neutral-900">
-        <div className="flex h-[64px] w-[64px] items-center justify-center rounded-full bg-accent-500/20 border border-accent-500">
-          <svg
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M8 5V19L19 12L8 5Z"
-              fill="currentColor"
-              className="text-accent-500"
-            />
-          </svg>
-        </div>
-      </div>
-      <p className="text-text-sm text-theme-text-muted">
-        Watch: Your personalised results explained
-      </p>
+      {showVsl && (
+        <>
+          {/* Video placeholder */}
+          <div className="mt-space-3 flex aspect-video w-full max-w-[1024px] flex-col items-center justify-center rounded-sm border border-neutral-700 bg-neutral-900">
+            <div className="flex h-[64px] w-[64px] items-center justify-center rounded-full bg-accent-500/20 border border-accent-500">
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M8 5V19L19 12L8 5Z"
+                  fill="currentColor"
+                  className="text-accent-500"
+                />
+              </svg>
+            </div>
+          </div>
+          <p className="text-text-sm text-theme-text-muted">
+            Watch: Your personalised results explained
+          </p>
+        </>
+      )}
     </section>
   );
 }

@@ -8,7 +8,8 @@ export type EventType =
   | 'assessment_started'
   | 'question_viewed'
   | 'question_answered'
-  | 'assessment_submitted';
+  | 'assessment_submitted'
+  | 'pdf_downloaded';
 
 export type DeviceType = 'mobile' | 'tablet' | 'desktop' | 'unknown';
 
