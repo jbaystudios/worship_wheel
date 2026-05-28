@@ -217,6 +217,67 @@ export async function getLeadsPage(query: LeadsQuery): Promise<LeadsResponse> {
 }
 
 /**
+ * Per-lead detail (spec 007, US4 drill-down). Reads a single row by id.
+ * Element scores and answer JSONB are returned alongside the row fields so
+ * the detail view can render the full profile without a second round-trip.
+ */
+export interface LeadDetail extends LeadRow {
+  overallPercentage: number;
+  balanceScore: number;
+  elementScores: Record<string, number>;
+  acquisition: {
+    utmSource: string | null;
+    utmMedium: string | null;
+    utmCampaign: string | null;
+  };
+}
+
+export async function getLeadById(id: string): Promise<LeadDetail | null> {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from('assessment_sessions')
+    .select(
+      [
+        'id',
+        'created_at',
+        'first_name',
+        'email',
+        'overall_score',
+        'overall_percentage',
+        'balance_score',
+        'profile_archetype',
+        'utm_source',
+        'utm_medium',
+        'utm_campaign',
+        'element_scores',
+        'keap_sync_status',
+        'keap_sync_error',
+      ].join(','),
+    )
+    .eq('id', id)
+    .maybeSingle();
+
+  if (error) throw new Error(`getLeadById failed: ${error.message}`);
+  if (!data) return null;
+
+  const row = data as unknown as SessionRow & {
+    element_scores: Record<string, number> | null;
+  };
+  const base = toLeadRow(row);
+  return {
+    ...base,
+    overallPercentage: Number(row.overall_percentage),
+    balanceScore: Number(row.balance_score),
+    elementScores: (row.element_scores ?? {}) as Record<string, number>,
+    acquisition: {
+      utmSource: row.utm_source,
+      utmMedium: row.utm_medium,
+      utmCampaign: row.utm_campaign,
+    },
+  };
+}
+
+/**
  * Async iterator of all matching leads, paged server-side at `EXPORT_PAGE_SIZE`.
  * Backs the CSV export so a 1-month export stays under the 10s budget (SC-010)
  * without buffering the full result set in memory.

@@ -1,15 +1,18 @@
-// Dashboard home — funnel + per-question drop-off (spec 005, US2 / task T035).
-// Server Component: reads the date range from the URL, loads funnel data, and
-// renders. The DateRangePicker updates the URL to re-trigger this render.
+// Funnel overview (spec 007, US1). Curated headline answer: KPI tiles +
+// funnel chart + biggest-drop-off callout. The full per-question table moves
+// to /admin/funnel/questions; selecting a question opens its detail view.
 import { parseRange, defaultRange } from '@/lib/analytics/date-range';
 import { getFunnelData } from '@/lib/admin/funnel-data';
 import { countDelta } from '@/lib/analytics/funnel';
 import type { FunnelStep } from '@/types/admin';
-import { StatCard } from '@/components/admin/StatCard';
-import { EmptyState } from '@/components/admin/EmptyState';
+import { PageHeader } from '@/components/admin/shell/PageHeader';
+import { MetricTile } from '@/components/admin/kpi/MetricTile';
+import { BiggestDropoffCallout } from '@/components/admin/kpi/BiggestDropoffCallout';
+import { EmptyState } from '@/components/admin/states/EmptyState';
+import { ErrorState } from '@/components/admin/states/ErrorState';
 import { DateRangePicker } from '@/components/admin/DateRangePicker';
-import { FunnelChart } from '@/components/admin/FunnelChart';
-import { DropoffTable } from '@/components/admin/DropoffTable';
+import { FunnelChart } from '@/components/admin/charts/FunnelChart';
+import { DrilldownLink } from '@/components/admin/drilldown/DrilldownLink';
 
 export const dynamic = 'force-dynamic';
 
@@ -54,31 +57,23 @@ export default async function DashboardHomePage({
 
   return (
     <section className="flex flex-col gap-space-5">
-      <div className="flex flex-wrap items-end justify-between gap-space-3">
-        <div>
-          <h1 className="text-h5 font-bold text-theme-text">Funnel</h1>
-          <p className="mt-space-1 text-text-sm text-theme-text-muted">
-            Visitor-to-lead conversion and per-question drop-off.
-          </p>
-        </div>
-        <DateRangePicker
-          from={range.from}
-          to={range.to}
-          includeInternal={includeInternal}
-        />
-      </div>
+      <PageHeader
+        title="Funnel"
+        description="Visitor-to-lead conversion at a glance."
+        rightSlot={
+          <DateRangePicker
+            from={range.from}
+            to={range.to}
+            includeInternal={includeInternal}
+          />
+        }
+      />
 
       {loadError ? (
-        <div className="rounded-md border border-error-500/40 bg-error-500/[0.06] px-space-5 py-space-4">
-          <p className="text-text-base font-bold text-error-400">
-            Funnel data unavailable
-          </p>
-          <p className="mt-space-1 text-text-sm text-theme-text-muted">
-            Could not load funnel data — confirm the Supabase migrations
-            (including the funnel RPC functions) have been applied. Details:{' '}
-            {loadError}
-          </p>
-        </div>
+        <ErrorState
+          title="Funnel data unavailable"
+          message={`Could not load funnel data — confirm the Supabase migrations (including the funnel RPC functions) have been applied. Details: ${loadError}`}
+        />
       ) : data && data.funnel[0].count === 0 ? (
         <EmptyState
           title="No visitors in this range"
@@ -92,7 +87,7 @@ export default async function DashboardHomePage({
                 (p) => p.step === row.step,
               );
               return (
-                <StatCard
+                <MetricTile
                   key={row.step}
                   label={STEP_LABEL[row.step]}
                   value={row.count.toLocaleString()}
@@ -102,6 +97,7 @@ export default async function DashboardHomePage({
                       : undefined
                   }
                   delta={previous ? countDelta(row.count, previous.count) : null}
+                  variant={row.step === 'lead_captured' ? 'primary' : 'secondary'}
                 />
               );
             })}
@@ -109,11 +105,15 @@ export default async function DashboardHomePage({
 
           <FunnelChart funnel={data.funnel} />
 
-          <div className="flex flex-col gap-space-3">
-            <h2 className="text-h6 font-bold text-theme-text">
-              Per-question drop-off
-            </h2>
-            <DropoffTable questions={data.questions} />
+          <BiggestDropoffCallout questions={data.questions} />
+
+          <div className="flex justify-end">
+            <DrilldownLink
+              href="/admin/funnel/questions"
+              className="cursor-pointer rounded-sm border border-theme-border px-space-4 py-space-2 text-text-sm font-medium text-theme-text-muted transition-colors hover:text-theme-text"
+            >
+              View per-question drop-off →
+            </DrilldownLink>
           </div>
         </>
       ) : null}

@@ -66,6 +66,8 @@ Spec Kit artefacts live in `.specify/`. Slash commands live in `.claude/commands
 ## Active Technologies
 - TypeScript 5.x, Node.js 20+ + Next.js 14 (App Router), `@react-pdf/renderer` (NEW — ~600 KB gzipped, pure JS), `@supabase/supabase-js` (existing service-role client) (006-results-pdf-download)
 - Supabase Postgres — read `assessment_sessions` row by resultId via service-role; write `pdf_downloaded` events to `assessment_events` (006-results-pdf-download)
+- TypeScript 5.x, Node.js 20+ + Next.js 14 (App Router), `@supabase/ssr` (existing), `@supabase/supabase-js` (existing), Chart.js 4.4 + react-chartjs-2 (existing), Tailwind CSS 3.4 (existing). No new runtime dependencies. (007-admin-dashboard-ui-refinements)
+- No new storage. All routes read from the existing `assessment_sessions`, `assessment_events`, and aggregate RPCs introduced in spec 005. (007-admin-dashboard-ui-refinements)
 
 - **Runtime**: TypeScript 5.x, Node.js 20+
 - **Framework**: Next.js 14 (App Router), deployed to Vercel
@@ -202,6 +204,6 @@ Full skill reference: `.claude/skills/ui-ux-pro-max/SKILL.md`
 - **Client PRD**: Complete (pending Charl review).
 
 ## Recent Changes
+- 007-admin-dashboard-ui-refinements: Added TypeScript 5.x, Node.js 20+ + Next.js 14 (App Router), `@supabase/ssr` (existing), `@supabase/supabase-js` (existing), Chart.js 4.4 + react-chartjs-2 (existing), Tailwind CSS 3.4 (existing). No new runtime dependencies.
 - 006-results-pdf-download: Added TypeScript 5.x, Node.js 20+ + Next.js 14 (App Router), `@react-pdf/renderer` (NEW — ~600 KB gzipped, pure JS), `@supabase/supabase-js` (existing service-role client)
 - 2026-05-20: 005-admin-dashboard — US5 (leads table, CSV export, Keap sync-health panel) shipped; T053/T054/T058/T060 polish complete.
-- 2026-05-19: 005-admin-dashboard — US1–US4 shipped; introduced `@supabase/ssr` for App Router auth and the `assessment_events` first-party event log.

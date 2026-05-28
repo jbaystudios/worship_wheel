@@ -68,3 +68,17 @@ export async function getAcquisitionData(
     topLandingPaths: result.landingPaths,
   };
 }
+
+/** Per-source detail (spec 007, US2 drill-down). Filters the existing
+ * acquisition response to a single source — pragmatic in-memory filter at
+ * current cohort scale; if source counts grow large the RPC should be
+ * extended to accept a source-key filter.
+ */
+export async function getSourceDetail(
+  sourceKey: string,
+  range: DateRange,
+  includeInternal = false,
+): Promise<AcquisitionResponse['sources'][number] | null> {
+  const all = await getAcquisitionData(range, includeInternal);
+  return all.sources.find((s) => s.source === sourceKey) ?? null;
+}

@@ -1,12 +1,21 @@
-// Per-question drop-off table (spec 005, US2 / task T034). Sticking-point
-// questions (high abandonment + high dwell) are visually flagged.
+// Per-question drop-off table (spec 005 + spec 007 drill-down). Sticking-point
+// questions are visually flagged. When `drilldownBaseHref` is provided each
+// row exposes an "Inspect →" affordance linking to a per-question detail view
+// (URL-state-preserving via <DrilldownLink>).
 import type { QuestionDropoffRow } from '@/types/admin';
+import { DrilldownLink } from '@/components/admin/drilldown/DrilldownLink';
 
 function pct(value: number): string {
   return `${(value * 100).toFixed(1)}%`;
 }
 
-export function DropoffTable({ questions }: { questions: QuestionDropoffRow[] }) {
+interface DropoffTableProps {
+  questions: QuestionDropoffRow[];
+  /** When set, each row gets a drill-down link to `${drilldownBaseHref}/${questionId}`. */
+  drilldownBaseHref?: string;
+}
+
+export function DropoffTable({ questions, drilldownBaseHref }: DropoffTableProps) {
   const maxReached = Math.max(1, ...questions.map((q) => q.reached));
 
   return (
@@ -57,11 +66,22 @@ export function DropoffTable({ questions }: { questions: QuestionDropoffRow[] })
                 {q.medianTimeSeconds}s
               </td>
               <td className="px-space-4 py-space-3">
-                {q.stickingPoint && (
-                  <span className="whitespace-nowrap rounded-sm bg-warning-500/15 px-space-2 py-[2px] text-[0.6875rem] font-bold uppercase tracking-wider text-warning-400">
-                    Sticking point
-                  </span>
-                )}
+                <div className="flex items-center gap-space-3">
+                  {q.stickingPoint && (
+                    <span className="whitespace-nowrap rounded-sm bg-warning-500/15 px-space-2 py-[2px] text-[0.6875rem] font-bold uppercase tracking-wider text-warning-400">
+                      Sticking point
+                    </span>
+                  )}
+                  {drilldownBaseHref && (
+                    <DrilldownLink
+                      href={`${drilldownBaseHref}/${q.questionId}`}
+                      className="cursor-pointer whitespace-nowrap text-text-sm font-medium text-theme-text-muted transition-colors hover:text-theme-text"
+                      ariaLabel={`Inspect question ${q.position}`}
+                    >
+                      Inspect →
+                    </DrilldownLink>
+                  )}
+                </div>
               </td>
             </tr>
           ))}

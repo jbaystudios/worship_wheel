@@ -1,15 +1,15 @@
 // Audience & Outcomes view (spec 005, US4 / task T045). Server Component.
 import { parseRange, defaultRange } from '@/lib/analytics/date-range';
 import { getOutcomesData } from '@/lib/admin/outcomes-data';
-import { StatCard } from '@/components/admin/StatCard';
-import { EmptyState } from '@/components/admin/EmptyState';
+import { MetricTile } from '@/components/admin/kpi/MetricTile';
+import { EmptyState } from '@/components/admin/states/EmptyState';
 import { DateRangePicker } from '@/components/admin/DateRangePicker';
 import {
   ArchetypeChart,
   ScoreBandChart,
   ElementAveragesChart,
   DeviceSplitChart,
-} from '@/components/admin/OutcomeCharts';
+} from '@/components/admin/charts/OutcomeCharts';
 
 export const dynamic = 'force-dynamic';
 
@@ -85,12 +85,12 @@ export default async function OutcomesPage({
       ) : data ? (
         <>
           <div className="flex flex-wrap gap-space-4">
-            <StatCard label="Completed Assessments" value={data.completers.toLocaleString()} />
-            <StatCard
+            <MetricTile label="Completed Assessments" value={data.completers.toLocaleString()} />
+            <MetricTile
               label="Avg Completion Time"
               value={formatDuration(data.completionTime.avgSeconds)}
             />
-            <StatCard
+            <MetricTile
               label="Median Completion Time"
               value={formatDuration(data.completionTime.medianSeconds)}
             />

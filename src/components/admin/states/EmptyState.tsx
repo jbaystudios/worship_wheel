@@ -1,12 +1,18 @@
-// Shared empty-state placeholder for dashboard charts and tables (spec 005, FR-043).
+// Contextual empty state for dashboard surfaces (spec 005 + spec 007 refinement).
+// Pass page-specific copy so each section reads as intentional, not generic.
+import { type ReactNode } from 'react';
+
+interface EmptyStateProps {
+  title?: string;
+  message?: string;
+  primaryAction?: ReactNode;
+}
 
 export function EmptyState({
   title = 'No data for this range',
   message = 'Try widening the date range, or check back once more assessments have been taken.',
-}: {
-  title?: string;
-  message?: string;
-}) {
+  primaryAction,
+}: EmptyStateProps) {
   return (
     <div className="flex flex-col items-center justify-center gap-space-2 rounded-md border border-theme-border bg-theme-bg-2 px-space-5 py-space-6 text-center">
       <svg
@@ -25,6 +31,7 @@ export function EmptyState({
       </svg>
       <p className="text-text-base font-bold text-theme-text">{title}</p>
       <p className="max-w-sm text-text-sm text-theme-text-muted">{message}</p>
+      {primaryAction && <div className="mt-space-2">{primaryAction}</div>}
     </div>
   );
 }

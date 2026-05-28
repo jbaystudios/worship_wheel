@@ -2,9 +2,9 @@
 // task T040). Server Component; the DateRangePicker drives re-renders via the URL.
 import { parseRange, defaultRange } from '@/lib/analytics/date-range';
 import { getAcquisitionData } from '@/lib/admin/acquisition-data';
-import { EmptyState } from '@/components/admin/EmptyState';
+import { EmptyState } from '@/components/admin/states/EmptyState';
 import { DateRangePicker } from '@/components/admin/DateRangePicker';
-import { SourceTable } from '@/components/admin/SourceTable';
+import { SourceTable } from '@/components/admin/lists/SourceTable';
 import { LandingPaths } from '@/components/admin/LandingPaths';
 
 export const dynamic = 'force-dynamic';

@@ -74,3 +74,17 @@ export async function getOutcomesData(
     completionTime: result.completionTime,
   };
 }
+
+/** Per-archetype reference (spec 007, US3 drill-down). Returns the
+ * distribution row matching `archetypeKey`. Per-element averages *for the
+ * archetype* require a new RPC and are deferred — the detail view renders
+ * sample size + share + a link into filtered leads.
+ */
+export async function getArchetypeRef(
+  archetypeKey: string,
+  range: DateRange,
+  includeInternal = false,
+): Promise<OutcomesResponse['archetypeDistribution'][number] | null> {
+  const all = await getOutcomesData(range, includeInternal);
+  return all.archetypeDistribution.find((a) => a.archetype === archetypeKey) ?? null;
+}

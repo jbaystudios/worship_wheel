@@ -8,7 +8,7 @@ import {
   type LeadsQuery,
 } from '@/lib/admin/leads-data';
 import { DateRangePicker } from '@/components/admin/DateRangePicker';
-import { LeadsTable } from '@/components/admin/LeadsTable';
+import { LeadsTable } from '@/components/admin/lists/LeadsTable';
 import { SyncHealthPanel } from '@/components/admin/SyncHealthPanel';
 import type { KeapSyncStatus, LeadsResponse } from '@/types/admin';
 

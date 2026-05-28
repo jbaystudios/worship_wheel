@@ -4,7 +4,7 @@
 import { redirect } from 'next/navigation';
 import { getAdminUser } from '@/lib/auth/session';
 import { createClient } from '@/lib/supabase/server';
-import { AdminNav } from '@/components/admin/AdminNav';
+import { AdminNav } from '@/components/admin/shell/AdminNav';
 
 async function signOut() {
   'use server';

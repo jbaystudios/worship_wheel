@@ -12,7 +12,7 @@ import {
   type FunnelCounts,
   type RawQuestionStat,
 } from '@/lib/analytics/funnel';
-import type { DateRange, FunnelResponse } from '@/types/admin';
+import type { DateRange, FunnelResponse, QuestionDropoffRow } from '@/types/admin';
 
 interface FunnelSummaryRpc {
   current: FunnelCounts;
@@ -55,4 +55,33 @@ export async function getFunnelData(
     previous: summaryData.previous,
     questionStats,
   });
+}
+
+/**
+ * Per-question detail (spec 007, US1 drill-down). Looks up a question by id
+ * from the existing funnel response. Answer distribution is deferred to a
+ * follow-up — it needs a JSONB roll-up on `assessment_sessions.answers`
+ * that doesn't exist yet.
+ */
+export interface QuestionDetail {
+  row: QuestionDropoffRow;
+  /** Index in the ordered question list (1-based for display). */
+  position: number;
+  /** Reserved for a future JSONB roll-up. Empty array until then. */
+  answerDistribution: { answerKey: string; label: string; count: number; share: number }[];
+}
+
+export async function getQuestionDetail(
+  questionId: string,
+  range: DateRange,
+  includeInternal = false,
+): Promise<QuestionDetail | null> {
+  const data = await getFunnelData(range, includeInternal);
+  const row = data.questions.find((q) => q.questionId === questionId);
+  if (!row) return null;
+  return {
+    row,
+    position: row.position,
+    answerDistribution: [],
+  };
 }
