@@ -25,7 +25,7 @@ export function ReportDocument({ data }: Props) {
       title={`Worship Wheel Assessment — ${data.firstName}`}
       author="Worship Guitar Skills"
       subject="Worship Wheel Assessment Report"
-      creator="worshipwheel.worshipguitarskills.com"
+      creator="worshipwheel.com"
     >
       <CoverPage firstName={data.firstName} completedAtFormatted={data.completedAtFormatted} />
       <ScoresPage data={data} />

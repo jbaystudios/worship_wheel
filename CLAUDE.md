@@ -5,7 +5,7 @@
 The **Worship Wheel** is an interactive, web-based self-diagnosis quiz for worship guitarists. Users answer 24 scenario-based questions (3 per element — scenario, checklist, experience — across the 8 dimensions; originally specced at 16), receive a radar-chart visualisation of their skills across 8 musical dimensions, and are captured as leads in Keap for automated follow-up.
 
 - **GitHub**: `git@github.com:jbaystudios/worship_wheel.git`
-- **Production domain**: `worshipwheel.worshipguitarskills.com`
+- **Production domain**: `worshipwheel.com` (canonical, set via `NEXT_PUBLIC_BASE_URL`)
 - **Tech stack**: Next.js 14 (App Router), Vercel, Supabase (PostgreSQL), Keap REST API v1, Chart.js, @vercel/og, Tailwind CSS, Zod
 - **Brand owner**: Charl Coetzee (Worship Guitar Skills)
 

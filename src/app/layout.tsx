@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   description:
     'Discover your worship guitar strengths and weaknesses in 5 minutes. Take the free Worship Wheel assessment.',
   metadataBase: new URL(
-    process.env.NEXT_PUBLIC_BASE_URL || 'https://worshipwheel.worshipguitarskills.com'
+    process.env.NEXT_PUBLIC_BASE_URL || 'https://worshipwheel.com'
   ),
 };
 
