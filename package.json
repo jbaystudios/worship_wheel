@@ -9,7 +9,8 @@
     "lint": "next lint",
     "test": "vitest",
     "test:e2e": "playwright test",
-    "admin:provision": "tsx src/scripts/provision-admin.ts"
+    "admin:provision": "tsx src/scripts/provision-admin.ts",
+    "keap:resync": "tsx src/scripts/resync-failed-keap.ts"
   },
   "dependencies": {
     "@fontsource/montserrat": "^5.2.8",
