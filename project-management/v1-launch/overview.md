@@ -1,8 +1,8 @@
 # v1 Launch — Overview
 
 **Launch date:** 2026-06-12
-**Audience:** Controlled internal cohort (size TBD — see open questions)
-**Status:** Scope agreed between Derick and Charl on 2026-05-22
+**Audience:** Controlled cohort — a hand-picked segment of Charl's Keap/Infusionsoft database. Distribution-side gating only: open public URL on `worshipwheel.worshipguitarskills.com`, no auth, no invite tokens. Charl chooses who receives the link. Size TBD via C-2.
+**Status:** Scope agreed between Derick and Charl on 2026-05-22; cohort access mechanism resolved 2026-05-28 (R-5)
 
 ## Goal
 
@@ -48,6 +48,7 @@ These need resolution before scope is fully locked. Tracked in [`risks.md`](risk
 - **Email cadence** — when each of the 3 emails per sequence sends (e.g. day 0, day 3, day 7). Decision deadline 2026-05-25 (Mon). (Owner: Charl + Derick)
 - **Archetype coverage strategy (D-AC)** — Path A (prove) / B (expand) / C (relax) / D (default). Decision deadline 2026-05-25 (Mon). (Owner: Derick)
 - **Soft-launch vs hard-launch on June 12** — staggered access or open the gate at once? (Owner: Charl + Derick)
+- **Resolved 2026-05-28:** Cohort access mechanism — open public URL on a custom domain (`worshipwheel.worshipguitarskills.com`). Charl segments his Keap audience and distributes the link; no auth or invite-token logic to build. See [`risks.md#R-5`](risks.md).
 - **Resolved 2026-05-22:** PDF design review — Charl trusts Derick's first pass; reviews post-build via C-3 (non-blocking).
 - **Resolved 2026-05-22:** Email count per sequence — 3 emails per sequence (provisional; may revisit in the coming days).
 - **Resolved 2026-05-22:** Fallback sequence handling — no fallback. Every user must land in a named archetype, enforced via D-AC.

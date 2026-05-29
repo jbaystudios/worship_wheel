@@ -1,6 +1,6 @@
 # v1 Launch — Deliverables by Owner
 
-Launch date: **2026-06-12** · Today: **2026-05-25** · Days remaining: **18**
+Launch date: **2026-06-12** · Today: **2026-05-28** · Days remaining: **15**
 
 Each item has an owner, a status, a target date, and a definition of done. If any of those four are blank, the [`project-manager`](../../.claude/skills/project-manager/SKILL.md) skill should flag it.
 
@@ -60,17 +60,18 @@ Each item has an owner, a status, a target date, and a definition of done. If an
 - **Notes:** Use a config flag, don't delete — this is coming back in v1.1
 
 ### D-2 · Printable PDF download from results page
-- **Status:** 🟡 **Spec drafted 2026-05-25** — implementation pending
-- **Target delivery:** **2026-05-27 (Wed)**
+- **Status:** ✅ **DONE 2026-05-25** — shipped in commit `9e65687` ahead of the 05-27 target
+- **Target delivery:** ~~2026-05-27 (Wed)~~ — met two days early
 - **Spec:** [`/specs/006-results-pdf-download/spec.md`](../../specs/006-results-pdf-download/spec.md)
 - **Approach (R-4 resolved 2026-05-25):** `@react-pdf/renderer` rendered server-side at `/api/results/[resultId]/pdf`, reads from Supabase via service-role client. Two button placements: top of results + end of report.
 - **Done when:**
-  - "Download PDF" CTA on results page (top + bottom) produces a styled PDF including: user's name, radar chart, per-dimension scores, archetype, recommendations
-  - PDF renders consistently across Preview, Adobe Reader, Chrome built-in viewer, mobile Safari
-  - No content cut at page boundaries on A4 print test
-  - PDF download event (`pdf_downloaded`) tracked in `assessment_events` for the admin dashboard (requires extending the event_type CHECK constraint)
+  - ✅ "Download PDF" CTA on results page (top + bottom) produces a styled PDF including: user's name, radar chart, per-dimension scores, archetype, recommendations
+  - ✅ `pdf_downloaded` event tracked in `assessment_events` for the admin dashboard
+  - ✅ D-1 feature flags (`FEATURES.showVsl` / `FEATURES.showCta`) also gate the PDF report — on-screen and downloaded artefact stay consistent
+  - ⏳ Cross-viewer rendering verification (Preview, Adobe Reader, Chrome built-in viewer, mobile Safari) — to be covered in D-5a solo dry-run 2026-05-29
+  - ⏳ A4 page-boundary visual check — same dry-run
 - **Dependencies:** ✅ R-4 (PDF approach) resolved; ✅ `src/lib/supabase/service.ts` (already exists from D-3)
-- **Note:** Ships with Derick's first-pass design; Charl reviews post-build via C-3. 6 open questions in the spec mostly default-resolvable without him.
+- **Note:** Ships with Derick's first-pass design; Charl reviews post-build via C-3.
 
 ### D-3 · Keap push integration
 - **Status:** ✅ **DONE 2026-05-25 (MVP)** — live test passed, contact `Worship Wheel Test` (Keap id 88271) shows under the tag filter with all 4 custom fields populated. Visible in Keap admin at *Contacts → With ANY of these Tags: 05. WGS System → 10. Marketing 3755 WGS Worship Wheel Assessment 01. START*. Hand-off to D-4.
@@ -136,11 +137,24 @@ Each item has an owner, a status, a target date, and a definition of done. If an
   - Test contacts cleaned from Keap; production-ready state confirmed
 - **Dependencies:** D-4 complete, C-2 cohort list received, R-5 cohort access mechanism decided
 
+### D-7 · Submit consent checkbox on assessment
+- **Status:** ✅ **DONE 2026-05-25** — shipped in commit `3e30d79`
+- **Target delivery:** ~~n/a — late addition~~ — met same-day
+- **Done when:**
+  - ✅ Final-question / lead-capture screen requires an explicit consent checkbox before the submit button enables
+  - ✅ Consent state is visible (checkbox + label) and accessible (keyboard-reachable, screen-reader friendly)
+  - ⏳ Copy reviewed by Charl for tone and compliance — to confirm during C-3 PDF review or D-5b pre-launch
+- **Why this matters:** Privacy / lead-capture compliance for v1 launch. We are pushing identifiable data to Keap on submit — explicit consent is the safe default before we hand cohort users a working assessment.
+- **Dependencies:** None (existed independently of D-1/D-2/D-3)
+
 ### D-6 · Production deployment + launch-day smoke test
 - **Status:** 🔴 Not started — **unblocked 2026-05-22** (Vercel `office-3285` access granted)
 - **Target delivery:** 2026-06-11 (Thu, day before launch)
-- **Done when:** Production URL serves the v1 build, quick smoke test confirms the happy path post-deploy
-- **Dependencies:** ✅ Vercel team access (resolved 2026-05-22); D-5b checklist passed
+- **Done when:**
+  - Production URL serves the v1 build
+  - **Custom domain `worshipwheel.worshipguitarskills.com` is live on Vercel** with valid TLS — this is the URL Charl distributes to the Keap segment (R-5 resolution)
+  - Quick smoke test confirms the happy path post-deploy (assessment → results → PDF → Keap contact)
+- **Dependencies:** ✅ Vercel team access (resolved 2026-05-22); D-5b checklist passed; **DNS access for `worshipguitarskills.com`** — Charl controls DNS and has agreed to grant Derick access (low-risk action item, confirm by 2026-06-08)
 
 ---
 
@@ -157,9 +171,9 @@ Each item has an owner, a status, a target date, and a definition of done. If an
 
 | Status | Count |
 |---|---|
-| 🔴 Not started | 10 |
-| 🔴 Blocked | 1 |
-| 🟢 Deferred (non-blocking) | 1 |
-| ✅ Done | 0 |
+| ✅ Done | 4 (D-2, D-3, D-AC, D-7) |
+| 🟡 In progress / partial | 1 (D-1 — code shipped, cross-width check pending) |
+| 🔴 Not started | 7 (C-1, C-2, D-4, D-5a, D-5b, D-6, S-1) |
+| 🟢 Deferred (non-blocking) | 1 (C-3) |
 
 See [`timeline.md`](timeline.md) for the week-by-week schedule and [`risks.md`](risks.md) for blocker mitigations.

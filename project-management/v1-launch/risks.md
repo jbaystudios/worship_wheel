@@ -29,11 +29,12 @@ Severity:
 - **Trade-off accepted:** a separate PDF layout component (not the on-screen UI). That separation is actually what makes the PDF look like a designed report instead of a screenshot of a web page.
 - **Spec:** [`/specs/006-results-pdf-download/spec.md`](../../specs/006-results-pdf-download/spec.md)
 
-## 🟡 R-5 · Cohort access mechanism undefined
+## 🟢 R-5 · Cohort access mechanism — RESOLVED 2026-05-28
 
-- **Impact:** "Controlled cohort" is currently a phrase, not an implementation. Open public URL? Invite-only link? Login required? Shapes what we build.
-- **Mitigation:** Decision needed by 2026-05-28 (Thu) so any required gating logic can ship alongside D-3.
-- **Trigger for escalation:** No decision by 2026-05-28
+- **Decision:** **Open public URL on a custom domain** (`worshipwheel.worshipguitarskills.com`). No auth, no invite token, no gating. The "controlled cohort" is achieved on the distribution side, not the access side: **Charl shares the link only to a controlled segment of his Keap/Infusionsoft database**, so the audience is bounded by who he emails — not by code.
+- **Why this over the alternatives:** Zero build cost vs invite-tokens or login gates. Charl already has the segmentation tool (Keap audiences) and doesn't need a public marketing channel for v1. Leakage risk is acceptable for a controlled-cohort soft launch.
+- **Implication for D-5b:** The "cohort access mechanism tested" line collapses to "custom domain resolves and serves the v1 build" — covered by D-6 production deploy.
+- **Implication for D-6:** Custom domain setup (`worshipwheel.worshipguitarskills.com`) must be configured on Vercel before launch — see D-6 done criteria.
 
 ## 🟡 R-8 · Archetype coverage gap (D-AC)
 

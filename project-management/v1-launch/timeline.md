@@ -1,6 +1,6 @@
 # v1 Launch — Timeline
 
-**Launch:** 2026-06-12 · **Today:** 2026-05-22
+**Launch:** 2026-06-12 · **Today:** 2026-05-28
 
 **Tightened 2026-05-22, refined 2026-05-22 (3×):**
 - Week 1 — Derick build sprint Mon–Fri, finishing 2026-05-29 (D-1, D-2, D-3, D-AC, D-5a solo dry-run). Charl delivers C-1 (18 emails across 6 archetype sequences) on 2026-05-29.
@@ -24,14 +24,17 @@ Critical path is in **bold**.
 | 2026-05-25 | Mon | Derick | **Ship D-1 (hide VSL)** | Feature-flagged; quick win |
 | 2026-05-25 | Mon | Derick | Decide PDF rendering approach (SSR vs client) | Default to client `html2pdf` if undecided |
 | 2026-05-25 | Mon | Charl | **Begin drafting C-1** (after cadence agreed) | 18 emails to write across Tue–Fri |
-| 2026-05-27 | Wed | Derick | **Ship D-2 (PDF download)** | First-pass design; Charl reviews post-build (C-3) |
-| 2026-05-28 | Thu | Derick | **Ship D-3 (Keap push)** | Includes archetype tagging from D-AC's final tag set |
-| 2026-05-29 | Fri | Derick | **D-5a — solo dry-run smoke test** | Full flow desktop + mobile; confirm Keap lands with a real archetype tag (never fallback) |
+| 2026-05-25 | Mon | Derick | ✅ **D-2 (PDF download) shipped** | Two days ahead of 05-27 target; commit `9e65687` |
+| 2026-05-25 | Mon | Derick | ✅ **D-3 (Keap push) live-tested** | Three days ahead of 05-28 target; contact 88271 verified in Keap |
+| 2026-05-25 | Mon | Derick | ✅ **D-7 (consent checkbox) shipped** | Late-addition deliverable; commit `3e30d79` |
+| 2026-05-29 | Fri | Derick | **D-5a — solo dry-run smoke test** | Full flow desktop + mobile; confirm Keap lands with a real archetype tag (never fallback); cover PDF cross-viewer verification |
 | 2026-05-29 | Fri | Charl | **Deliver email copy (C-1) to Derick** | 18 emails across 6 archetype sequences |
 
 **Exit criteria:** D-1/D-2/D-3/D-AC merged, dry-run green, Charl's copy in Derick's hands.
 
-> ⚠️ Monday 2026-05-25 is the heaviest day of week 1 — D-AC + D-1 + PDF decision + cadence convo, then Charl starts drafting. Realistic for Derick (~1 day of focused work) but leaves Charl only Tue–Fri (4 working days) for 18 emails. Confirm realism when putting the date to Charl on Friday.
+> ✅ **Week-1 build status (as of 2026-05-28):** D-AC, D-2, D-3, D-7 all ✅ shipped. D-1 code shipped, cross-width visual check pending — to be covered in D-5a dry-run. **Only items still open this week: D-5a (dry-run) and C-1 (Charl's copy).** Both target Fri 2026-05-29.
+
+> ✅ **R-5 resolved 2026-05-28**: open public URL on `worshipwheel.worshipguitarskills.com`; Charl handles cohort gating by emailing only a hand-picked Keap segment. Custom-domain setup folded into D-6.
 
 ---
 
@@ -81,8 +84,7 @@ The chain that determines whether 2026-06-12 is achievable:
 Parallel paths that must also complete:
 - Keap creds (05-22) → D-3 with archetype tagging (05-28) → D-4
 - PDF approach decision (05-25) → D-2 (05-27) → D-5a (05-29)
-- Vercel team invite (week 1) → D-6 (06-11)
-- R-5 cohort access decision (by 05-28) → D-5b cohort access verification (06-04 → 05)
+- Vercel team invite (week 1) → custom domain on Vercel (`worshipwheel.worshipguitarskills.com`, R-5 resolution) → D-6 (06-11)
 
 **Weakest links right now:**
 1. **C-1 commit + scope.** May 29 is Derick's target, not Charl's commit. Scope is concrete (18 emails) — easier to commit to, but still uncommitted. Charl's effective writing window is Tue–Fri (4 working days).
