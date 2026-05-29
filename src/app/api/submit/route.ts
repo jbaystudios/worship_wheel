@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { waitUntil } from '@vercel/functions';
 import { z } from 'zod';
 import { questions } from '@/data/questions';
 import { scoreScenario, scoreChecklist, scoreExperience, scoreElement, scoreOverall, scorePercentage, scoreBalance } from '@/lib/scoring/calculator';
@@ -201,20 +202,26 @@ export async function POST(request: Request) {
       if (insertError) {
         console.error('assessment_sessions insert failed:', insertError.message);
       } else {
-        // Fire-and-forget Keap push (D-3). The user response must not block on
-        // Keap latency; the sync writes its own status back to the row.
+        // Background Keap push (D-3). The user response must not block on Keap
+        // latency, but a bare fire-and-forget is unreliable on Vercel: once the
+        // response is sent the function instance can be frozen before the async
+        // Keap calls finish, leaving keap_sync_status stuck at 'pending'.
+        // waitUntil keeps the instance alive until the sync (and its status
+        // writeback) settles, without delaying the response.
         const baseUrl =
           process.env.NEXT_PUBLIC_BASE_URL ??
           new URL(request.url).origin;
-        void syncSessionToKeap({
-          resultId,
-          firstName,
-          email: normalizedEmail,
-          overallScore: results.overallScore,
-          overallPercentage: results.overallPercentage,
-          archetypeKey: results.archetype.key,
-          resultsUrl: `${baseUrl}/results/${resultId}`,
-        });
+        waitUntil(
+          syncSessionToKeap({
+            resultId,
+            firstName,
+            email: normalizedEmail,
+            overallScore: results.overallScore,
+            overallPercentage: results.overallPercentage,
+            archetypeKey: results.archetype.key,
+            resultsUrl: `${baseUrl}/results/${resultId}`,
+          }),
+        );
       }
     } catch (err) {
       // Non-fatal: the user still receives results (graceful degradation).
