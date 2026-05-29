@@ -177,7 +177,7 @@ export default function AssessmentPage() {
       const data = await response.json();
       trackAssessmentSubmitted(data.resultId);
       sessionStorage.setItem('worshipWheelResult', JSON.stringify(data));
-      router.push('/results');
+      router.push(`/results/${data.resultId}`);
     } catch (err) {
       setLoadingError(
         err instanceof Error ? err.message : 'Something went wrong. Please try again.',

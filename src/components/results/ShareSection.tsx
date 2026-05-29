@@ -2,33 +2,25 @@
 
 import { useState } from 'react';
 
-export function ShareSection() {
+interface ShareSectionProps {
+  /** The result id, used to build the canonical shareable URL. */
+  resultId: string;
+}
+
+export function ShareSection({ resultId }: ShareSectionProps) {
   const [copied, setCopied] = useState(false);
 
   async function copyToClipboard() {
+    // Always copy the canonical by-id URL (…/results/<id>) so the link works in
+    // any session/device — not window.location.href, which on the bare
+    // /results fallback carries no id.
+    const url = `${window.location.origin}/results/${resultId}`;
     try {
-      await navigator.clipboard.writeText(window.location.href);
+      await navigator.clipboard.writeText(url);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
       // Clipboard access denied — silently ignore
-    }
-  }
-
-  async function handleShare() {
-    if (typeof navigator.share === 'function') {
-      try {
-        await navigator.share({
-          title: 'My Worship Wheel',
-          text: 'Check out my Worship Wheel assessment results!',
-          url: window.location.href,
-        });
-      } catch {
-        // User cancelled or share failed — no action needed
-      }
-    } else {
-      // Fallback: copy to clipboard
-      await copyToClipboard();
     }
   }
 
@@ -42,7 +34,7 @@ export function ShareSection() {
         Share your Worship Wheel with your band or worship team
       </p>
 
-      {/* Buttons */}
+      {/* Button */}
       <div className="flex gap-space-3 max-md:flex-col max-md:w-full max-md:max-w-[280px]">
         <button
           type="button"
@@ -50,13 +42,6 @@ export function ShareSection() {
           className="inline-flex items-center justify-center rounded-sm border border-theme-text bg-transparent px-space-5 py-[10px] text-text-base font-bold text-theme-text hover:bg-theme-text hover:text-neutral-950 transition-colors cursor-pointer min-w-[137px]"
         >
           {copied ? 'Copied!' : 'Copy Link'}
-        </button>
-        <button
-          type="button"
-          onClick={handleShare}
-          className="inline-flex items-center justify-center rounded-sm border border-theme-text bg-transparent px-space-5 py-[10px] text-text-base font-bold text-theme-text hover:bg-theme-text hover:text-neutral-950 transition-colors cursor-pointer min-w-[100px]"
-        >
-          Share
         </button>
       </div>
     </section>
