@@ -5,6 +5,8 @@
 **Prepared by**: Derick Strydom
 **For review by**: Charl Coetzee
 
+> **Historical artefact — original scope.** This is the seed document that kicked off the project. It reflects the initial MVP scope and is intentionally left as-is. The product has since developed beyond it — most notably the assessment now has **24 questions** (3 per element), expanded from the 16 described here (see `specs/002-assessment-scoring-optimization`). For current state, see `CLAUDE.md`, `spec.md`, and `project-management/`.
+
 ---
 
 ## 1. What Are We Building?

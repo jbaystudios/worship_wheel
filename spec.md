@@ -7,7 +7,7 @@ This is the entry-point specification for the Worship Wheel project. It summaris
 
 ## Product Summary
 
-The **Worship Wheel Assessment Tool** is an interactive, web-based self-diagnosis quiz for worship guitarists. A user answers 16 scenario-based questions, receives a radar-chart visualisation of their skills across 8 musical dimensions, and is captured as a lead in Keap for automated, tailored follow-up.
+The **Worship Wheel Assessment Tool** is an interactive, web-based self-diagnosis quiz for worship guitarists. A user answers 24 scenario-based questions (3 per element across the 8 dimensions; originally specced at 16, expanded in spec 002), receives a radar-chart visualisation of their skills across 8 musical dimensions, and is captured as a lead in Keap for automated, tailored follow-up.
 
 **Primary business goal**: Lead generation for Worship Guitar Skills (WGS), funnelled into the correct WGS offering based on overall score band.
 
@@ -31,7 +31,7 @@ Scores are 1–10 per element; overall score is the sum (8–80, also shown as %
 ## Core User Flow
 
 1. **Landing page** — value proposition + start CTA.
-2. **Assessment** — 16 questions shown one at a time with progress bar; each question maps to one or more elements.
+2. **Assessment** — 24 questions shown one at a time with progress bar; each question maps to one or more elements.
 3. **Email gate** — name + email required before seeing results.
 4. **Results page** — animated radar chart, numerical scores per element, overall score (out of 80 and %), balance score, highlighted strengths/weaknesses, archetype label, tailored recommendations, CTA based on score band.
 5. **Lead capture** — contact created/updated in Keap with tags for score band, weak elements, and completion; automated email sequence delivers summary and follow-up content.

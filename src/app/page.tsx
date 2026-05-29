@@ -14,7 +14,7 @@ const elements = [
 ];
 
 const steps = [
-  { number: '01', title: 'Answer 16 Questions', description: 'Real-world worship scenarios that reveal your true skill level across 8 dimensions.' },
+  { number: '01', title: 'Answer the Questions', description: 'Real-world worship scenarios that reveal your true skill level across 8 dimensions.' },
   { number: '02', title: 'Get Your Worship Wheel', description: 'See your personalised radar chart showing your strengths and growth areas at a glance.' },
   { number: '03', title: 'Receive Your Action Plan', description: 'Get tailored recommendations and next steps to level up where it matters most.' },
 ];
@@ -65,7 +65,7 @@ export default function Home() {
             Start the Assessment →
           </a>
           <span className="text-text-sm font-bold text-theme-text-muted">
-            5 minutes · 16 questions · Completely free
+            5 minutes · Completely free
           </span>
         </div>
       </section>
