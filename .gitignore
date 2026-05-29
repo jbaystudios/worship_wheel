@@ -27,3 +27,6 @@ test-results/
 *.tsbuildinfo
 next-env.d.ts
 .claude/settings.local.json
+
+# local agent tooling
+.agents/
