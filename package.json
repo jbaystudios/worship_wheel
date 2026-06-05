@@ -11,6 +11,7 @@
     "test:e2e": "playwright test",
     "admin:provision": "tsx src/scripts/provision-admin.ts",
     "keap:resync": "tsx src/scripts/resync-failed-keap.ts",
+    "keap:check-tag": "tsx src/scripts/check-keap-tag.ts",
     "test:cleanse": "tsx src/scripts/cleanse-test-data.ts"
   },
   "dependencies": {
