@@ -6,6 +6,7 @@ import { createServiceClient } from '@/lib/supabase/service';
 import { archetypeNameFromKey } from '@/lib/scoring/archetypes';
 import { getCtaBand } from '@/lib/scoring/bands';
 import { ARCHETYPES_BY_KEY } from '@/lib/scoring/archetypes';
+import { archetypeContent } from '@/data/archetype-content';
 import { ELEMENT_CODES } from '@/types';
 import type { ElementCode } from '@/types';
 
@@ -24,6 +25,8 @@ export interface PdfData {
     key: string;
     displayName: string;
     message: string;
+    /** Charl's diagnosis copy, one entry per paragraph (may contain inline bold/italic markdown). */
+    reveal: string[];
   };
   cta: {
     label: string;
@@ -107,6 +110,7 @@ export async function loadPdfData(resultId: string): Promise<PdfData | null> {
   const archetypeMessage =
     ARCHETYPES_BY_KEY[row.profile_archetype]?.message ??
     "You've completed your Worship Wheel — your scores tell the story of where you are now and where to focus next.";
+  const archetypeReveal = archetypeContent[row.profile_archetype]?.reveal ?? [archetypeMessage];
 
   const ctaBand = getCtaBand(row.overall_score);
 
@@ -125,6 +129,7 @@ export async function loadPdfData(resultId: string): Promise<PdfData | null> {
       key: row.profile_archetype,
       displayName: archetypeDisplayName,
       message: archetypeMessage,
+      reveal: archetypeReveal,
     },
     cta: {
       label: ctaBand.label,

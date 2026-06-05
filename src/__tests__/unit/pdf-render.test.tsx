@@ -10,6 +10,7 @@
 import { describe, it, expect } from 'vitest';
 import { renderToBuffer } from '@react-pdf/renderer';
 import { ReportDocument } from '@/components/results/pdf/ReportDocument';
+import { archetypeContent } from '@/data/archetype-content';
 import type { PdfData } from '@/lib/pdf/data';
 import type { ElementCode } from '@/types';
 
@@ -35,6 +36,11 @@ function fixture(archetypeKey: string): PdfData {
       key: archetypeKey,
       displayName: 'The Test Archetype',
       message: 'Test archetype message used only for snapshot stability.',
+      // Use the real reveal copy where it exists so the render exercises the
+      // bold/italic inline-markdown path (and the italic font registration).
+      reveal: archetypeContent[archetypeKey]?.reveal ?? [
+        'A **bold** word and an *italic* word to exercise inline markdown.',
+      ],
     },
     cta: {
       label: '90-Day Breakthrough Intensive',

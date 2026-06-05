@@ -117,12 +117,27 @@ export async function syncSessionToKeap(input: KeapSyncInput): Promise<KeapSyncO
     const { fields, missingEnvKeys: missingFields } = buildCustomFields(input);
     const { tagIds, missingEnvKeys: missingTags } = resolveTagIds();
 
-    const missing = [...missingFields, ...missingTags];
-    if (missing.length > 0) {
-      // Log but do not abort — operators get a sync-health warning and can fill
-      // in the missing env keys without losing the contact write.
+    // Missing custom-field env keys mean we would create/update a contact with
+    // NO Worship Wheel data (archetype, results URL, scores) while still
+    // reporting success — the silent failure that hid the field IDs never being
+    // mirrored to Vercel Production (2026-06-04). `synced` must mean the fields
+    // actually landed, so abort and mark 'failed': the admin sync-health panel
+    // then surfaces it, and `keap:resync` retries once the env is fixed.
+    if (missingFields.length > 0) {
+      const message = `Missing Keap custom-field env keys: ${missingFields.join(', ')}`;
+      console.error(`keap sync ${input.resultId} aborted: ${message}`);
+      await writeStatus(input.resultId, {
+        keap_sync_status: 'failed',
+        keap_sync_error: message,
+      });
+      return { status: 'failed', error: message };
+    }
+
+    // A missing completion tag still lets the fields write, but the contact
+    // won't enter the follow-up automation — warn loudly, don't hard-abort.
+    if (missingTags.length > 0) {
       console.warn(
-        `keap sync ${input.resultId}: missing env keys (${missing.length}): ${missing.join(', ')}`,
+        `keap sync ${input.resultId}: missing tag env keys: ${missingTags.join(', ')}`,
       );
     }
 

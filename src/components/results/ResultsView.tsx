@@ -7,6 +7,7 @@ import { CtaBanner } from '@/components/results/CtaBanner';
 import { ShareSection } from '@/components/results/ShareSection';
 import { DownloadPdfButton } from '@/components/results/DownloadPdfButton';
 import { FEATURES } from '@/lib/features';
+import { archetypeContent } from '@/data/archetype-content';
 import type { StoredResult } from '@/lib/results/data';
 
 interface ResultsViewProps {
@@ -73,7 +74,9 @@ export function ResultsView({ result }: ResultsViewProps) {
         <div className="w-full max-w-[1344px]">
           <ArchetypeCard
             archetypeName={result.archetype.name}
-            archetypeMessage={result.archetype.message}
+            reveal={
+              archetypeContent[result.archetype.key]?.reveal ?? [result.archetype.message]
+            }
             showVsl={FEATURES.showVsl}
           />
         </div>

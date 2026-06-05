@@ -1,7 +1,19 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { resolveTagIds, buildCustomFields } from '@/lib/keap/sync';
+import { resolveTagIds, buildCustomFields, syncSessionToKeap } from '@/lib/keap/sync';
 import { upsertContact, applyTags, KeapApiError, KeapConfigError } from '@/lib/keap/client';
 import type { KeapSyncInput } from '@/lib/keap/sync';
+
+// Mock the Supabase service client used by writeStatus so the orchestrator can
+// be exercised without a live DB. Captures the status patch for assertions.
+const { fromMock, updateMock, eqMock } = vi.hoisted(() => {
+  const eqMock = vi.fn();
+  const updateMock = vi.fn((_patch: Record<string, unknown>) => ({ eq: eqMock }));
+  const fromMock = vi.fn(() => ({ update: updateMock }));
+  return { fromMock, updateMock, eqMock };
+});
+vi.mock('@/lib/supabase/service', () => ({
+  createServiceClient: () => ({ from: fromMock }),
+}));
 
 function fixture(overrides: Partial<KeapSyncInput> = {}): KeapSyncInput {
   return {
@@ -49,6 +61,9 @@ afterEach(() => {
     else process.env[k] = v;
   }
   vi.unstubAllGlobals();
+  fromMock.mockClear();
+  updateMock.mockClear();
+  eqMock.mockClear();
 });
 
 // ── Tag resolution (MVP: single completion tag) ───────────────────────────
@@ -122,6 +137,55 @@ describe('buildCustomFields', () => {
     applyEnv({ KEAP_FIELD_WW_ARCHETYPE: '265' });
     const { fields } = buildCustomFields(fixture({ archetypeKey: 'mystery_key' }));
     expect(fields[0].content).toBe('mystery_key');
+  });
+});
+
+// ── Orchestrator config guard (2026-06-04 regression) ─────────────────────
+
+describe('syncSessionToKeap — missing field env keys', () => {
+  it('marks the sync FAILED (not synced) and never writes the contact when field env keys are absent', async () => {
+    // Tag + service key present, but the KEAP_FIELD_WW_* IDs are NOT — exactly
+    // the prod misconfig that silently wrote tagged contacts with no WW data.
+    applyEnv(TAG_ENV);
+    process.env.KEAP_SERVICE_ACCOUNT_KEY = 'test-key';
+    eqMock.mockResolvedValue({ error: null });
+    const fetchSpy = vi.fn();
+    vi.stubGlobal('fetch', fetchSpy);
+
+    const outcome = await syncSessionToKeap(fixture());
+
+    expect(outcome.status).toBe('failed');
+    expect(outcome).toMatchObject({
+      error: expect.stringContaining('KEAP_FIELD_WW_ARCHETYPE'),
+    });
+    // No Keap write attempted — we abort before touching the contact.
+    expect(fetchSpy).not.toHaveBeenCalled();
+    // Status writeback records 'failed' with the missing-keys reason.
+    expect(updateMock).toHaveBeenCalled();
+    const patch = updateMock.mock.calls[0]![0];
+    expect(patch.keap_sync_status).toBe('failed');
+    expect(String(patch.keap_sync_error)).toContain('KEAP_FIELD_WW_RESULTS_URL');
+  });
+
+  it('syncs and marks synced when all field env keys are present', async () => {
+    applyEnv(TAG_ENV);
+    applyEnv(FIELD_ENV);
+    process.env.KEAP_SERVICE_ACCOUNT_KEY = 'test-key';
+    eqMock.mockResolvedValue({ error: null });
+    const fetchSpy = vi
+      .fn()
+      // 1) PUT /contacts → contact id, 2) POST /contacts/{id}/tags → {}
+      .mockResolvedValueOnce(new Response(JSON.stringify({ id: 555 }), { status: 200 }))
+      .mockResolvedValueOnce(new Response('{}', { status: 200 }));
+    vi.stubGlobal('fetch', fetchSpy);
+
+    const outcome = await syncSessionToKeap(fixture());
+
+    expect(outcome).toEqual({ status: 'synced', contactId: 555 });
+    expect(fetchSpy).toHaveBeenCalledTimes(2);
+    expect(updateMock).toHaveBeenCalled();
+    const patch = updateMock.mock.calls[0]![0];
+    expect(patch.keap_sync_status).toBe('synced');
   });
 });
 

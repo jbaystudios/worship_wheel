@@ -10,6 +10,7 @@ import {
   type LeadExportRow,
 } from '@/lib/admin/leads-data';
 import { streamCsv, type CsvCell } from '@/lib/analytics/csv';
+import { resolveCanonicalBaseUrl } from '@/lib/base-url';
 
 export const dynamic = 'force-dynamic';
 
@@ -27,8 +28,8 @@ const HEADER = [
 ];
 
 function resultsUrl(resultId: string): string {
-  const base = process.env.NEXT_PUBLIC_BASE_URL?.replace(/\/$/, '') ?? '';
-  return `${base}/results/${resultId}`;
+  // Canonical prod domain — a localhost env value must not land in an export.
+  return `${resolveCanonicalBaseUrl()}/results/${resultId}`;
 }
 
 function rowToCells(row: LeadExportRow): CsvCell[] {
