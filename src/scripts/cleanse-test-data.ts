@@ -27,6 +27,7 @@
  * listed in the output so you know exactly which ones.
  */
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import { listContactsWithCompletionTag } from '../lib/keap/tag-audit';
 
 // Load .env.local (Node 20.12+). Ignore if unavailable — env may already be set.
 try {
@@ -134,12 +135,33 @@ async function main() {
 
   if (after.sessions === 0 && after.events === 0 && after.aggregates === 0) {
     console.log('✓ Supabase wiped. Admin dashboard stats are now zero.');
-    if (emails.length > 0) {
-      console.log('→ Next: delete the matching Keap test contacts (emails listed above).');
-    }
   } else {
     console.error('✗ Some rows remain — check the errors above.');
     process.exit(1);
+  }
+
+  // Keap-side check: confirm no contact still carries the completion tag. The
+  // operator deletes Keap test contacts manually (often in parallel), so a
+  // non-zero count here just means cleanup is still in progress — re-run
+  // `npm run keap:check-tag` until it's clean.
+  console.log('\nChecking Keap for the completion tag ...');
+  try {
+    const { tagId, contacts, reportedCount, staleEntriesIgnored } =
+      await listContactsWithCompletionTag();
+    if (staleEntriesIgnored > 0) {
+      console.log(
+        `  (Keap's tag index reported ${reportedCount}; ${staleEntriesIgnored} were stale and ignored after per-contact verification.)`,
+      );
+    }
+    if (contacts.length === 0) {
+      console.log(`✓ Keap is clean — no contacts verifiably carry the completion tag (${tagId}).`);
+    } else {
+      console.log(`⚠ ${contacts.length} contact(s) still carry the completion tag (${tagId}):`);
+      for (const c of contacts) console.log(`    • ${c.id}  ${c.email ?? '(no email)'}`);
+      console.log('  Delete these in Keap, then re-run:  npm run keap:check-tag');
+    }
+  } catch (err) {
+    console.log(`  (Keap check skipped: ${err instanceof Error ? err.message : err})`);
   }
 }
 
