@@ -32,6 +32,9 @@ Running record of manual QA we've run against the live stack. **One-liners only*
 - 2026-05-29 · ❌ · Complete assessment → results page → PDF download returned HTTP 500 (`api/results/58a7c5fd-…/pdf`). Cause: Montserrat `.woff` fonts not traced into the Vercel function bundle (runtime `path.join`), so `Font.register` hit ENOENT
 - 2026-05-29 · ✅ · Re-verified after fix (PR #3, `outputFileTracingIncludes`) deployed → `58a7c5fd-…/pdf` returns `200 application/pdf` (~22 KB) on `worshipwheel.com`. First real prod exercise of the PDF route
 
+## Archetype reveal copy (results page + PDF)
+- 2026-06-05 · ✅ · PR #7 merged + deployed. Live `worshipwheel.com/results/ecc6df44-…` now renders Charl's full per-archetype reveal copy (verified the Balanced Beginner reveal "…drastically dragging the others down…" is present; old one-line `message` gone). Same `reveal` also wired into the PDF ScoresPage. Source: `src/data/archetype-content.ts`
+
 ## Results page by-id (003 follow-up)
 - 2026-05-29 · ✅ · `worshipwheel.com/results/58a7c5fd-…` (server-loaded by id) returns `200` and renders "Your Worship Wheel" — lets Keap email links / shared links return users to results in a fresh session. Malformed and valid-but-missing ids both return the empty state (no 500)
 
