@@ -10,7 +10,8 @@
     "test": "vitest",
     "test:e2e": "playwright test",
     "admin:provision": "tsx src/scripts/provision-admin.ts",
-    "keap:resync": "tsx src/scripts/resync-failed-keap.ts"
+    "keap:resync": "tsx src/scripts/resync-failed-keap.ts",
+    "test:cleanse": "tsx src/scripts/cleanse-test-data.ts"
   },
   "dependencies": {
     "@fontsource/montserrat": "^5.2.8",
