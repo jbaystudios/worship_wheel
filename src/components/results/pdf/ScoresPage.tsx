@@ -7,6 +7,7 @@
 // Per-element breakdown lives on its own page (ElementBreakdownPage).
 import { Page, View, Text } from '@react-pdf/renderer';
 import { RadarSvg } from './RadarSvg';
+import { renderPdfInlineMarkdown } from './inline-markdown';
 import { styles } from './styles';
 import type { PdfData } from '@/lib/pdf/data';
 
@@ -51,7 +52,18 @@ export function ScoresPage({ data }: Props) {
           <Text style={styles.label}>Your Profile</Text>
           <Text style={styles.h2}>{data.archetype.displayName}</Text>
           <View style={styles.archetypeCard}>
-            <Text style={styles.body}>{data.archetype.message}</Text>
+            {data.archetype.reveal.map((paragraph, i) => (
+              <Text
+                key={i}
+                style={
+                  i === data.archetype.reveal.length - 1
+                    ? [styles.body, { marginBottom: 0 }]
+                    : styles.body
+                }
+              >
+                {renderPdfInlineMarkdown(paragraph)}
+              </Text>
+            ))}
           </View>
         </View>
       </View>

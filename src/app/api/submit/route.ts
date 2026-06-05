@@ -9,6 +9,7 @@ import { ELEMENT_CODES, ELEMENT_NAMES } from '@/types';
 import type { ElementCode, ElementScore } from '@/types';
 import { createPublicClient } from '@/lib/supabase/public';
 import { syncSessionToKeap } from '@/lib/keap/sync';
+import { resolveRequestBaseUrl } from '@/lib/base-url';
 
 // ── Zod validation ────────────────────────────────────────────
 
@@ -208,9 +209,10 @@ export async function POST(request: Request) {
         // Keap calls finish, leaving keap_sync_status stuck at 'pending'.
         // waitUntil keeps the instance alive until the sync (and its status
         // writeback) settles, without delaying the response.
-        const baseUrl =
-          process.env.NEXT_PUBLIC_BASE_URL ??
-          new URL(request.url).origin;
+        // Never push a localhost link to Keap from a prod request — see
+        // resolveRequestBaseUrl. NEXT_PUBLIC_BASE_URL is the canonical source,
+        // but a leaked localhost value falls back to the real request origin.
+        const baseUrl = resolveRequestBaseUrl(request.url);
         waitUntil(
           syncSessionToKeap({
             resultId,

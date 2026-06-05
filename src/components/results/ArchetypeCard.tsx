@@ -1,6 +1,10 @@
+import { renderInlineMarkdown } from '@/components/results/inline-markdown';
+
 interface ArchetypeCardProps {
   archetypeName: string;
-  archetypeMessage: string;
+  /** The archetype "reveal" — Charl's diagnosis copy, one entry per paragraph.
+   *  Supports inline **bold** / *italic* markdown. */
+  reveal: string[];
   /** When false (MVP default), the "Watch: Your personalised results explained"
    *  video placeholder is omitted. Controlled by FEATURES.showVsl in src/lib/features.ts. */
   showVsl?: boolean;
@@ -8,7 +12,7 @@ interface ArchetypeCardProps {
 
 export function ArchetypeCard({
   archetypeName,
-  archetypeMessage,
+  reveal,
   showVsl = true,
 }: ArchetypeCardProps) {
   return (
@@ -25,9 +29,14 @@ export function ArchetypeCard({
       <h2 className="text-h3 max-md:text-h4 font-bold text-theme-text">
         {archetypeName}
       </h2>
-      <p className="max-w-[700px] text-text-lg max-md:text-text-base text-theme-text-muted">
-        {archetypeMessage}
-      </p>
+      {reveal.map((paragraph, i) => (
+        <p
+          key={i}
+          className="max-w-[700px] text-text-lg max-md:text-text-base text-theme-text-muted"
+        >
+          {renderInlineMarkdown(paragraph)}
+        </p>
+      ))}
       {showVsl && (
         <>
           {/* Video placeholder */}

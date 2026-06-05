@@ -23,6 +23,9 @@ Font.register({
     { src: path.join(FONT_DIR, 'montserrat-latin-400-normal.woff'), fontWeight: 400 },
     { src: path.join(FONT_DIR, 'montserrat-latin-500-normal.woff'), fontWeight: 500 },
     { src: path.join(FONT_DIR, 'montserrat-latin-700-normal.woff'), fontWeight: 700 },
+    // Italic variants — required by the archetype reveal copy (e.g. "*right now*").
+    { src: path.join(FONT_DIR, 'montserrat-latin-400-italic.woff'), fontWeight: 400, fontStyle: 'italic' },
+    { src: path.join(FONT_DIR, 'montserrat-latin-700-italic.woff'), fontWeight: 700, fontStyle: 'italic' },
   ],
 });
 

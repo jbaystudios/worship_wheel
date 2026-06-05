@@ -16,6 +16,7 @@
  * field/tag ids, KEAP_SERVICE_ACCOUNT_KEY, and NEXT_PUBLIC_BASE_URL in .env.local.
  */
 import { createClient } from '@supabase/supabase-js';
+import { resolveCanonicalBaseUrl } from '../lib/base-url';
 
 // Load .env.local (Node 20.12+). Ignore if unavailable — env may already be set.
 try {
@@ -45,7 +46,9 @@ async function main() {
     process.exit(1);
   }
 
-  const baseUrl = (process.env.NEXT_PUBLIC_BASE_URL ?? 'https://worshipwheel.com').replace(/\/$/, '');
+  // Resync always pushes to live Keap, so a localhost NEXT_PUBLIC_BASE_URL in
+  // .env.local must NOT leak into the results link — resolve to canonical prod.
+  const baseUrl = resolveCanonicalBaseUrl();
 
   const supabase = createClient(url, serviceKey, {
     auth: { autoRefreshToken: false, persistSession: false },
