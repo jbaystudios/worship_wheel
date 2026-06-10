@@ -1,6 +1,13 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { resolveTagIds, buildCustomFields, syncSessionToKeap } from '@/lib/keap/sync';
-import { upsertContact, applyTags, KeapApiError, KeapConfigError } from '@/lib/keap/client';
+import {
+  upsertContact,
+  applyTags,
+  getEmailStatus,
+  optInEmail,
+  KeapApiError,
+  KeapConfigError,
+} from '@/lib/keap/client';
 import type { KeapSyncInput } from '@/lib/keap/sync';
 
 // Mock the Supabase service client used by writeStatus so the orchestrator can
@@ -29,6 +36,37 @@ function fixture(overrides: Partial<KeapSyncInput> = {}): KeapSyncInput {
   };
 }
 
+// URL-aware fetch mock covering the full sync path: upsert (PUT /contacts),
+// applyTags (POST /contacts/{id}/tags), opt-in guard (GET /contacts?email), and
+// opt-in (POST /xmlrpc). Lets opt-in tests assert by call rather than by order.
+function keapFetchMock(
+  opts: { emailStatus?: string | null; optInOk?: boolean; optInBoolean?: 0 | 1 } = {},
+) {
+  const { emailStatus = 'NonMarketable', optInOk = true, optInBoolean = 1 } = opts;
+  return vi.fn(async (url: string, init?: { method?: string }) => {
+    const method = init?.method ?? 'GET';
+    if (url.includes('/xmlrpc')) {
+      if (!optInOk) return new Response('<fault><value>boom</value></fault>', { status: 500 });
+      return new Response(
+        `<?xml version="1.0"?><methodResponse><params><param><value><boolean>${optInBoolean}</boolean></value></param></params></methodResponse>`,
+        { status: 200 },
+      );
+    }
+    if (url.includes('/contacts?email')) {
+      return new Response(
+        JSON.stringify({ contacts: emailStatus ? [{ email_status: emailStatus }] : [] }),
+        { status: 200 },
+      );
+    }
+    if (method === 'PUT') return new Response(JSON.stringify({ id: 555 }), { status: 200 });
+    return new Response('{}', { status: 200 }); // POST tags, etc.
+  });
+}
+
+function xmlrpcCalls(spy: ReturnType<typeof vi.fn>) {
+  return spy.mock.calls.filter((c) => String(c[0]).includes('/xmlrpc'));
+}
+
 // ── Env helpers ───────────────────────────────────────────────────────────
 
 const TAG_ENV: Record<string, string> = {
@@ -42,9 +80,10 @@ const FIELD_ENV: Record<string, string> = {
   KEAP_FIELD_WW_OVERALL_PERCENTAGE: '271',
 };
 
-// Optional display-name field — kept out of FIELD_ENV so the "required 4" tests
-// exercise the env-unset path. Listed here only for env save/restore hygiene.
-const OPTIONAL_FIELD_ENV_KEY = 'KEAP_FIELD_WW_ARCHETYPE_NAME';
+// Optional fields — kept out of FIELD_ENV so the "required 4" tests exercise the
+// env-unset path. Listed here only for env save/restore hygiene.
+const OPTIONAL_FIELD_ENV_KEYS = ['KEAP_FIELD_WW_ARCHETYPE_NAME', 'KEAP_FIELD_WW_RESULT_ID'];
+const OPTIONAL_FIELD_ENV_KEY = OPTIONAL_FIELD_ENV_KEYS[0];
 
 let savedEnv: Record<string, string | undefined>;
 
@@ -54,7 +93,7 @@ function applyEnv(env: Record<string, string>) {
 
 beforeEach(() => {
   savedEnv = {};
-  for (const k of [...Object.keys(TAG_ENV), ...Object.keys(FIELD_ENV), OPTIONAL_FIELD_ENV_KEY, 'KEAP_SERVICE_ACCOUNT_KEY']) {
+  for (const k of [...Object.keys(TAG_ENV), ...Object.keys(FIELD_ENV), ...OPTIONAL_FIELD_ENV_KEYS, 'KEAP_SERVICE_ACCOUNT_KEY']) {
     savedEnv[k] = process.env[k];
     delete process.env[k];
   }
@@ -154,11 +193,23 @@ describe('buildCustomFields', () => {
 
   it('omits the optional display-name field WITHOUT reporting it missing when its env key is unset', () => {
     // The whole point: a not-yet-mirrored optional env key must not break the sync.
-    applyEnv(FIELD_ENV); // does NOT include KEAP_FIELD_WW_ARCHETYPE_NAME
+    applyEnv(FIELD_ENV); // does NOT include KEAP_FIELD_WW_ARCHETYPE_NAME / RESULT_ID
     const { fields, missingEnvKeys } = buildCustomFields(fixture());
     expect(fields).toHaveLength(4);
     expect(missingEnvKeys).toEqual([]); // not flagged as missing → sync proceeds
     expect(fields.map((f) => f.id)).not.toContain(272);
+    expect(fields.map((f) => f.id)).not.toContain(274);
+  });
+
+  it('includes the optional result-id field (id 274) with the bare result id when its env key is set', () => {
+    applyEnv({ ...FIELD_ENV, KEAP_FIELD_WW_RESULT_ID: '274' });
+    const { fields, missingEnvKeys } = buildCustomFields(
+      fixture({ resultId: 'c61f2121-2c22-4967-b0e2-7d5764a57c47' }),
+    );
+    expect(missingEnvKeys).toEqual([]);
+    expect(new Map(fields.map((f) => [f.id, f.content])).get(274)).toBe(
+      'c61f2121-2c22-4967-b0e2-7d5764a57c47',
+    );
   });
 });
 
@@ -194,18 +245,69 @@ describe('syncSessionToKeap — missing field env keys', () => {
     applyEnv(FIELD_ENV);
     process.env.KEAP_SERVICE_ACCOUNT_KEY = 'test-key';
     eqMock.mockResolvedValue({ error: null });
-    const fetchSpy = vi
-      .fn()
-      // 1) PUT /contacts → contact id, 2) POST /contacts/{id}/tags → {}
-      .mockResolvedValueOnce(new Response(JSON.stringify({ id: 555 }), { status: 200 }))
-      .mockResolvedValueOnce(new Response('{}', { status: 200 }));
+    vi.stubGlobal('fetch', keapFetchMock({ emailStatus: 'NonMarketable' }));
+
+    const outcome = await syncSessionToKeap(fixture());
+
+    expect(outcome).toEqual({ status: 'synced', contactId: 555 });
+    expect(updateMock).toHaveBeenCalled();
+    const patch = updateMock.mock.calls[0]![0];
+    expect(patch.keap_sync_status).toBe('synced');
+  });
+});
+
+// ── Email opt-in (spec 008) ───────────────────────────────────────────────
+
+describe('syncSessionToKeap — email opt-in', () => {
+  beforeEach(() => {
+    applyEnv(TAG_ENV);
+    applyEnv(FIELD_ENV);
+    process.env.KEAP_SERVICE_ACCOUNT_KEY = 'test-key';
+    eqMock.mockResolvedValue({ error: null });
+  });
+
+  it('opts in a NonMarketable contact (and records the consent reason)', async () => {
+    const fetchSpy = keapFetchMock({ emailStatus: 'NonMarketable' });
+    vi.stubGlobal('fetch', fetchSpy);
+
+    const outcome = await syncSessionToKeap(fixture());
+
+    expect(outcome.status).toBe('synced');
+    const calls = xmlrpcCalls(fetchSpy);
+    expect(calls).toHaveLength(1);
+    const body = String((calls[0][1] as { body: string }).body);
+    expect(body).toContain('APIEmailService.optIn');
+    expect(body).toContain('john@example.com');
+    // consent reason references the privacy policy (FR-002)
+    expect(body).toContain('shop.worshipguitarskills.com/pages/privacy-policy');
+  });
+
+  it('does NOT opt in an already-marketable contact (no downgrade)', async () => {
+    const fetchSpy = keapFetchMock({ emailStatus: 'SingleOptIn' });
+    vi.stubGlobal('fetch', fetchSpy);
+
+    const outcome = await syncSessionToKeap(fixture());
+
+    expect(outcome.status).toBe('synced');
+    expect(xmlrpcCalls(fetchSpy)).toHaveLength(0); // guard skipped the opt-in
+  });
+
+  it('does NOT opt in an opted-out contact (respects unsubscribe)', async () => {
+    const fetchSpy = keapFetchMock({ emailStatus: 'OptOut' });
+    vi.stubGlobal('fetch', fetchSpy);
+
+    await syncSessionToKeap(fixture());
+
+    expect(xmlrpcCalls(fetchSpy)).toHaveLength(0);
+  });
+
+  it('stays SYNCED when the opt-in call fails (non-blocking)', async () => {
+    const fetchSpy = keapFetchMock({ emailStatus: 'NonMarketable', optInOk: false });
     vi.stubGlobal('fetch', fetchSpy);
 
     const outcome = await syncSessionToKeap(fixture());
 
     expect(outcome).toEqual({ status: 'synced', contactId: 555 });
-    expect(fetchSpy).toHaveBeenCalledTimes(2);
-    expect(updateMock).toHaveBeenCalled();
     const patch = updateMock.mock.calls[0]![0];
     expect(patch.keap_sync_status).toBe('synced');
   });
@@ -279,5 +381,85 @@ describe('keap client — applyTags', () => {
     expect(init.method).toBe('POST');
     const body = JSON.parse(init.body);
     expect(new Set(body.tagIds)).toEqual(new Set([10, 20, 30]));
+  });
+});
+
+describe('keap client — getEmailStatus', () => {
+  it('returns the contact email_status by email', async () => {
+    process.env.KEAP_SERVICE_ACCOUNT_KEY = 'test-key';
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        new Response(JSON.stringify({ contacts: [{ email_status: 'SingleOptIn' }] }), {
+          status: 200,
+        }),
+      ),
+    );
+    expect(await getEmailStatus('a@b.com')).toBe('SingleOptIn');
+  });
+
+  it('returns null when no contact matches', async () => {
+    process.env.KEAP_SERVICE_ACCOUNT_KEY = 'test-key';
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(new Response(JSON.stringify({ contacts: [] }), { status: 200 })),
+    );
+    expect(await getEmailStatus('missing@b.com')).toBeNull();
+  });
+});
+
+describe('keap client — optInEmail', () => {
+  it('throws KeapConfigError when the service key is missing', async () => {
+    await expect(optInEmail('a@b.com', 'reason')).rejects.toBeInstanceOf(KeapConfigError);
+  });
+
+  it('POSTs APIEmailService.optIn with [key, email, reason] and returns true on boolean 1', async () => {
+    process.env.KEAP_SERVICE_ACCOUNT_KEY = 'test-key';
+    const fetchSpy = vi.fn().mockResolvedValue(
+      new Response(
+        '<?xml version="1.0"?><methodResponse><params><param><value><boolean>1</boolean></value></param></params></methodResponse>',
+        { status: 200 },
+      ),
+    );
+    vi.stubGlobal('fetch', fetchSpy);
+
+    const result = await optInEmail('john@example.com', 'Completed the assessment');
+
+    expect(result).toBe(true);
+    const [url, init] = fetchSpy.mock.calls[0];
+    expect(url).toBe('https://api.infusionsoft.com/crm/xmlrpc/v1');
+    expect(init.method).toBe('POST');
+    expect(init.headers.Authorization).toBe('Bearer test-key');
+    // params in order: key, email, reason
+    const params = [...String(init.body).matchAll(/<string>([^<]*)<\/string>/g)].map((m) => m[1]);
+    expect(params).toEqual(['test-key', 'john@example.com', 'Completed the assessment']);
+  });
+
+  it('returns false on boolean 0 (no-op: already opted in or opted out)', async () => {
+    process.env.KEAP_SERVICE_ACCOUNT_KEY = 'test-key';
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        new Response(
+          '<?xml version="1.0"?><methodResponse><params><param><value><boolean>0</boolean></value></param></params></methodResponse>',
+          { status: 200 },
+        ),
+      ),
+    );
+    expect(await optInEmail('a@b.com', 'reason')).toBe(false);
+  });
+
+  it('throws on an XML-RPC fault', async () => {
+    process.env.KEAP_SERVICE_ACCOUNT_KEY = 'test-key';
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        new Response(
+          '<?xml version="1.0"?><methodResponse><fault><value><struct><member><name>faultString</name><value>No method matching arguments</value></member></struct></value></fault></methodResponse>',
+          { status: 200 },
+        ),
+      ),
+    );
+    await expect(optInEmail('a@b.com', 'reason')).rejects.toBeInstanceOf(KeapApiError);
   });
 });

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { PRIVACY_POLICY_URL } from '@/lib/constants';
 
 interface EmailGateProps {
   onSubmit: (firstName: string, email: string) => void;
@@ -99,7 +100,12 @@ export function EmailGate({ onSubmit, isSubmitting }: EmailGateProps) {
           />
           <span className="text-text-sm text-theme-text-muted">
             I agree to receive emails with my results and worship guitar tips.{' '}
-            <a href="/privacy" className="underline hover:text-accent-500">
+            <a
+              href={PRIVACY_POLICY_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:text-accent-500"
+            >
               View our Privacy Policy
             </a>
             .
