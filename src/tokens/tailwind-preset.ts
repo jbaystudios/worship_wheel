@@ -128,9 +128,13 @@ export const wgsPreset: Partial<Config> = {
 
       // ---------------------------------------------------------------
       // Font family — Montserrat
+      // Primary is the next/font CSS variable (set on <html> in layout.tsx) so
+      // the loaded webfont is actually applied — including on mobile, where the
+      // bare 'Montserrat' family name isn't installed and would silently fall
+      // back to system-ui. typography.family + system-ui are fallbacks.
       // ---------------------------------------------------------------
       fontFamily: {
-        sans: [typography.family, 'system-ui', 'sans-serif'],
+        sans: ['var(--font-montserrat)', typography.family, 'system-ui', 'sans-serif'],
       },
 
       // ---------------------------------------------------------------
