@@ -40,3 +40,6 @@ Running record of manual QA we've run against the live stack. **One-liners only*
 
 ## Admin dashboard (005)
 - 2026-05-28 · ✅ · Sign in to `/admin/login` as `derick@swaydeandco.com` after service-role password reset → dashboard loads with stats populated from test submissions
+
+## Keap email opt-in + merge fields + Completed tag (spec 008 + follow-ups)
+- 2026-06-10 · ✅ · Live prod end-to-end on `derick+cs04@swaydeandco.com`. Opt-in: fresh contact moved `NonMarketable → SingleOptIn` (XML-RPC `APIEmailService.optIn`); retake left it `SingleOptIn` (no downgrade). Rhythm Machine submit → `archetype=rhythm_machine`, `archetype_name="Rhythm Machine"`, `result_id` populated (matches `results_url`), tags `3984 Completed Assessment` + `3974 Rhythm Machine`. First follow-up emails actually delivered (were silently blocked before — contacts defaulted `NonMarketable`). PRs #11/#12/#13. Required Vercel env (Production): `KEAP_FIELD_WW_ARCHETYPE_NAME=272`, `KEAP_FIELD_WW_RESULT_ID=274`, `KEAP_TAG_WW_COMPLETED_HISTORY=3984` — the two field vars were briefly Preview-only, fixed + redeployed.
