@@ -23,7 +23,7 @@ export default function Home() {
   return (
     <main>
       {/* Navbar */}
-      <nav className="flex items-center justify-center px-space-8 py-space-1 bg-neutral-0">
+      <nav className="flex items-center justify-center px-site-margin py-space-1 bg-neutral-0">
         <Image
           src="/logo.svg"
           alt="Worship Guitar Skills"
