@@ -93,7 +93,7 @@ function applyEnv(env: Record<string, string>) {
 
 beforeEach(() => {
   savedEnv = {};
-  for (const k of [...Object.keys(TAG_ENV), 'KEAP_TAG_WW_COMPLETED_HISTORY', ...Object.keys(FIELD_ENV), ...OPTIONAL_FIELD_ENV_KEYS, 'KEAP_SERVICE_ACCOUNT_KEY']) {
+  for (const k of [...Object.keys(TAG_ENV), ...Object.keys(FIELD_ENV), ...OPTIONAL_FIELD_ENV_KEYS, 'KEAP_SERVICE_ACCOUNT_KEY']) {
     savedEnv[k] = process.env[k];
     delete process.env[k];
   }
@@ -131,20 +131,6 @@ describe('resolveTagIds', () => {
     const { tagIds, missingEnvKeys } = resolveTagIds();
     expect(tagIds).toEqual([]);
     expect(missingEnvKeys).toEqual(['KEAP_TAG_WW_COMPLETED']);
-  });
-
-  it('includes the durable completed-history tag when KEAP_TAG_WW_COMPLETED_HISTORY is set', () => {
-    applyEnv({ KEAP_TAG_WW_COMPLETED: '100', KEAP_TAG_WW_COMPLETED_HISTORY: '3984' });
-    const { tagIds, missingEnvKeys } = resolveTagIds();
-    expect(tagIds).toEqual([100, 3984]);
-    expect(missingEnvKeys).toEqual([]);
-  });
-
-  it('is optional — a missing completed-history tag is skipped, not flagged', () => {
-    applyEnv({ KEAP_TAG_WW_COMPLETED: '100' }); // no _HISTORY
-    const { tagIds, missingEnvKeys } = resolveTagIds();
-    expect(tagIds).toEqual([100]);
-    expect(missingEnvKeys).toEqual([]); // not reported as missing
   });
 });
 

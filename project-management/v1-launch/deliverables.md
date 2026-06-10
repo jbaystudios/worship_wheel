@@ -114,7 +114,7 @@ Each item has an owner, a status, a target date, and a definition of done. If an
 
 All tags follow the WGS house convention `10. Marketing 3755 WGS Worship Wheel Assessment <NN>. <Step>`.
 
-**Flow:** the app applies the **START tag (3967)** + the durable **Completed Assessment tag (3984)** on submit and sets the `worship_wheel_archetype` custom field → the START tag triggers the campaign → a **decision diamond reads the custom field** and routes the contact into the matching archetype sequence → **within that sequence, the respective history tag is applied** (first step on entry). Routing is **custom-field driven, not tag-driven** — the history tags don't trigger sequences; they record which sequence a contact entered.
+**Flow:** the app applies the **START tag (3967)** on submit and sets the `worship_wheel_archetype` custom field → the START tag triggers the campaign → the campaign applies the durable **Completed Assessment tag (3984)** and a **decision diamond reads the custom field** to route the contact into the matching archetype sequence → **within that sequence, the respective history tag is applied** (first step on entry). Routing is **custom-field driven, not tag-driven** — the history tags don't trigger sequences; they record which sequence a contact entered.
 
 **Control tags** — category `05. WGS System` (id 132):
 
@@ -123,13 +123,13 @@ All tags follow the WGS house convention `10. Marketing 3755 WGS Worship Wheel A
 | `… 01. START` (completion) | **3967** | App (`src/lib/keap/sync.ts`) on submit | `KEAP_TAG_WW_COMPLETED` |
 | `… 99. STOP` (sequence exit) | **3970** | Keap (sequence control) | — |
 
-**Completion marker** — category `02. WGS History` (id 142), applied by the app on every submit:
+**Completion marker** — category `02. WGS History` (id 142), applied **Keap-side in the campaign**:
 
-| Tag | Keap ID | Applied by | Env key |
-|---|---|---|---|
-| `… 00. Completed Assessment` | **3984** | App (`src/lib/keap/sync.ts`) on submit | `KEAP_TAG_WW_COMPLETED_HISTORY` |
+| Tag | Keap ID | Applied by |
+|---|---|---|
+| `… 00. Completed Assessment` | **3984** | Keap (campaign) |
 
-> The **START tag (3967) is removed by the campaign** after routing, so it is not a durable "has completed" marker. The **Completed Assessment tag (3984)** is the durable one — applied to every completer (alongside START) so completers can be filtered without OR-ing the six archetype tags. Added 2026-06-10; optional/non-blocking in the sync. **Must be mirrored to Vercel Production** (`KEAP_TAG_WW_COMPLETED_HISTORY=3984`).
+> The **START tag (3967) is removed by the campaign** after routing, so it is not a durable "has completed" marker. The **Completed Assessment tag (3984)** is the durable one — applied within the campaign so completers can be filtered without OR-ing the six archetype tags. Added 2026-06-10. **Applied in Keap, not by the app** (no app env key / code needed).
 
 **Archetype history tags** — category `02. WGS History` (id 142), created 2026-06-10, applied within each archetype sequence (first step on entry):
 
