@@ -17,6 +17,7 @@
  */
 import { createClient } from '@supabase/supabase-js';
 import { resolveCanonicalBaseUrl } from '../lib/base-url';
+import { archetypeNameFromKey, archetypeShortName } from '../lib/scoring/archetypes';
 
 // Load .env.local (Node 20.12+). Ignore if unavailable — env may already be set.
 try {
@@ -98,6 +99,7 @@ async function main() {
       overallScore: r.overall_score,
       overallPercentage: Number(r.overall_percentage),
       archetypeKey: r.profile_archetype,
+      archetypeName: archetypeShortName(archetypeNameFromKey(r.profile_archetype)),
       resultsUrl: `${baseUrl}/results/${r.id}`,
     });
     if (outcome.status === 'synced') {

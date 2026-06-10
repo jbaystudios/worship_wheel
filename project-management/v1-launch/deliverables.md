@@ -102,13 +102,51 @@ Each item has an owner, a status, a target date, and a definition of done. If an
 - **Trigger:** If D-AC finds a coverage gap that needs new archetypes (Path B), C-1 scope grows by 3 emails per added archetype — raise as scope change with Charl the same day.
 
 ### D-4 · Implement Charl's email copy as Keap sequences (one per archetype)
-- **Status:** 🔴 Not started — week-2 work
+- **Status:** 🟡 In progress — six archetype sequences set up in Keap (Charl); history tags created 2026-06-10 (see Tag reference below)
 - **Target delivery:** **2026-06-03 (Wed)**
 - **Done when:**
   - All sequences from C-1 are built in Keap (one per archetype, 3 emails each)
-  - Each archetype tag from D-3 triggers the correct sequence
+  - The START-tag campaign's decision diamond routes each contact (by `worship_wheel_archetype` custom field) into the correct sequence, which applies the matching history tag
   - Test contacts (one per archetype) run through each sequence end-to-end — all 3 emails per sequence delivered on the expected cadence
 - **Dependencies:** C-1 (email copy delivered 2026-05-29), D-3 (Keap push live with archetype tags)
+
+#### Keap tag reference — Worship Wheel Assessment (archive of record)
+
+All tags follow the WGS house convention `10. Marketing 3755 WGS Worship Wheel Assessment <NN>. <Step>`.
+
+**Flow:** the app applies the **START tag (3967)** on submit and sets the `worship_wheel_archetype` custom field → the START tag triggers the campaign → a **decision diamond reads the custom field** and routes the contact into the matching archetype sequence → **within that sequence, the respective history tag is applied** (first step on entry). Routing is **custom-field driven, not tag-driven** — the history tags don't trigger sequences; they record which sequence a contact entered.
+
+**Control tags** — category `05. WGS System` (id 132):
+
+| Tag | Keap ID | Applied by | Env key |
+|---|---|---|---|
+| `… 01. START` (completion) | **3967** | App (`src/lib/keap/sync.ts`) on submit | `KEAP_TAG_WW_COMPLETED` |
+| `… 99. STOP` (sequence exit) | **3970** | Keap (sequence control) | — |
+
+**Archetype history tags** — category `02. WGS History` (id 142), created 2026-06-10, applied within each archetype sequence (first step on entry):
+
+| `worship_wheel_archetype` value | Tag | Keap ID |
+|---|---|---|
+| `campfire_strummer` | `… 01. Campfire Strummer` | **3972** |
+| `rhythm_machine` | `… 02. Rhythm Machine` | **3974** |
+| `theory_head` | `… 03. Theory Head` | **3976** |
+| `almost_there_player` | `… 04. Almost-There Player` | **3978** |
+| `balanced_beginner` | `… 05. Balanced Beginner` | **3980** |
+| `uneven_intermediate` | `… 06. Uneven Intermediate` | **3982** |
+
+> Tags created via `src/scripts/create-keap-tag.ts` (duplicate-guarded; safe to re-run). The app does **not** apply the history tags or the STOP tag — those are Keap-side only.
+
+**Custom fields** — Keap contact custom fields the app populates on submit (all Text):
+
+| Field label | Keap ID | Value written | Env key | Required? |
+|---|---|---|---|---|
+| `worship_wheel_archetype` | 265 | snake_case key (`campfire_strummer`) — decision-diamond routing | `KEAP_FIELD_WW_ARCHETYPE` | ✅ |
+| `worship_wheel_archetype_name` | **272** | display name, no "The" (`Campfire Strummer`) — email merge fields | `KEAP_FIELD_WW_ARCHETYPE_NAME` | ⬜ optional¹ |
+| `worship_wheel_results_url` | 267 | full results URL | `KEAP_FIELD_WW_RESULTS_URL` | ✅ |
+| `worship_wheel_overall_score` | 269 | overall score (8–80) | `KEAP_FIELD_WW_OVERALL_SCORE` | ✅ |
+| `worship_wheel_overall_percentage` | 271 | overall percentage | `KEAP_FIELD_WW_OVERALL_PERCENTAGE` | ✅ |
+
+> ¹ `worship_wheel_archetype_name` (added 2026-06-10) is **optional in the sync** — if its env key is missing it's skipped with a warning, not fatal (the required identity field 265 is unaffected). Merge-field reference: `worshipwheelarchetypename`. **Must be mirrored to Vercel Production** (`KEAP_FIELD_WW_ARCHETYPE_NAME=272`) for it to populate in prod.
 
 ### D-5a · Solo dry-run smoke test
 - **Status:** 🔴 Not started

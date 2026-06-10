@@ -25,7 +25,12 @@ export interface KeapSyncInput {
   email: string;
   overallScore: number;
   overallPercentage: number;
+  /** Stable snake_case archetype key (e.g. `campfire_strummer`) — the value the
+   *  Keap decision diamond branches on. */
   archetypeKey: string;
+  /** Human-readable archetype display name with no leading "The"
+   *  (e.g. `Campfire Strummer`) — for email merge fields. */
+  archetypeName: string;
   /** Full results page URL (https://…/results/<id>) — used in Keap email merge fields. */
   resultsUrl: string;
 }
@@ -55,6 +60,10 @@ export function resolveTagIds(): { tagIds: number[]; missingEnvKeys: string[] } 
 interface FieldSpec {
   envKey: string;
   content: string | number;
+  /** Required fields abort the whole sync when their env key is missing (the
+   *  contact would land with no WW identity). Optional fields are skipped with a
+   *  warning so a not-yet-mirrored env key never breaks the sync — see below. */
+  required: boolean;
 }
 
 export function buildCustomFields(input: KeapSyncInput): {
@@ -66,18 +75,28 @@ export function buildCustomFields(input: KeapSyncInput): {
   // stable identifier is more important than human readability — display copy
   // can change without breaking the automation.
   const specs: FieldSpec[] = [
-    { envKey: 'KEAP_FIELD_WW_ARCHETYPE', content: input.archetypeKey },
-    { envKey: 'KEAP_FIELD_WW_RESULTS_URL', content: input.resultsUrl },
-    { envKey: 'KEAP_FIELD_WW_OVERALL_SCORE', content: input.overallScore },
-    { envKey: 'KEAP_FIELD_WW_OVERALL_PERCENTAGE', content: input.overallPercentage },
+    { envKey: 'KEAP_FIELD_WW_ARCHETYPE', content: input.archetypeKey, required: true },
+    { envKey: 'KEAP_FIELD_WW_RESULTS_URL', content: input.resultsUrl, required: true },
+    { envKey: 'KEAP_FIELD_WW_OVERALL_SCORE', content: input.overallScore, required: true },
+    { envKey: 'KEAP_FIELD_WW_OVERALL_PERCENTAGE', content: input.overallPercentage, required: true },
+    // Supplementary: human-readable archetype display name (no "The") for email
+    // merge fields. OPTIONAL — the stable key field above already carries archetype
+    // identity, so a missing env key here (e.g. not yet mirrored to Vercel Production)
+    // must NOT abort the sync the way the required fields do (the 2026-06-04 regression).
+    { envKey: 'KEAP_FIELD_WW_ARCHETYPE_NAME', content: input.archetypeName, required: false },
   ];
 
   const fields: { id: number; content: string | number | null }[] = [];
   const missingEnvKeys: string[] = [];
   for (const spec of specs) {
     const id = envNumericId(spec.envKey);
-    if (id == null) missingEnvKeys.push(spec.envKey);
-    else fields.push({ id, content: spec.content });
+    if (id != null) {
+      fields.push({ id, content: spec.content });
+    } else if (spec.required) {
+      missingEnvKeys.push(spec.envKey);
+    } else {
+      console.warn(`keap sync: optional field env key ${spec.envKey} not set — skipping`);
+    }
   }
   return { fields, missingEnvKeys };
 }

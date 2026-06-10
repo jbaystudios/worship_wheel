@@ -1,6 +1,21 @@
 import { describe, it, expect } from 'vitest';
-import { matchArchetype } from '@/lib/scoring/archetypes';
+import { matchArchetype, archetypeShortName, ARCHETYPES_BY_KEY } from '@/lib/scoring/archetypes';
 import type { ElementCode } from '@/types';
+
+describe('archetypeShortName', () => {
+  it('strips the leading "The " from every named archetype', () => {
+    for (const { name } of Object.values(ARCHETYPES_BY_KEY)) {
+      const short = archetypeShortName(name);
+      expect(short.startsWith('The ')).toBe(false);
+      // e.g. "The Campfire Strummer" → "Campfire Strummer"
+      expect(name.endsWith(short)).toBe(true);
+    }
+  });
+
+  it('passes names without a leading "The" through unchanged', () => {
+    expect(archetypeShortName('Rhythm Machine')).toBe('Rhythm Machine');
+  });
+});
 
 /** Helper: create a scores map from ordered array [FB, HM, ML, RH, TO, TH, TE, AU] */
 function scores(vals: number[]): Record<ElementCode, number> {

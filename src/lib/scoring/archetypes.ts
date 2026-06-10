@@ -107,6 +107,16 @@ export function archetypeNameFromKey(key: string): string {
 }
 
 /**
+ * The archetype display name without the leading "The " — for Keap email merge
+ * fields and tag labels (e.g. "The Campfire Strummer" → "Campfire Strummer").
+ * Lets copy compose its own article ("The {{name}}") instead of hard-coding each
+ * archetype. Names that don't start with "The " pass through unchanged.
+ */
+export function archetypeShortName(name: string): string {
+  return name.replace(/^The\s+/i, '');
+}
+
+/**
  * Match a profile archetype based on element scores. Evaluates archetypes in
  * priority order; returns the first match. When no rule fires, returns
  * Balanced Beginner so every user lands in one of the 6 named archetypes —
