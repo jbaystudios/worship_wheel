@@ -42,9 +42,10 @@ const FIELD_ENV: Record<string, string> = {
   KEAP_FIELD_WW_OVERALL_PERCENTAGE: '271',
 };
 
-// Optional display-name field — kept out of FIELD_ENV so the "required 4" tests
-// exercise the env-unset path. Listed here only for env save/restore hygiene.
-const OPTIONAL_FIELD_ENV_KEY = 'KEAP_FIELD_WW_ARCHETYPE_NAME';
+// Optional fields — kept out of FIELD_ENV so the "required 4" tests exercise the
+// env-unset path. Listed here only for env save/restore hygiene.
+const OPTIONAL_FIELD_ENV_KEYS = ['KEAP_FIELD_WW_ARCHETYPE_NAME', 'KEAP_FIELD_WW_RESULT_ID'];
+const OPTIONAL_FIELD_ENV_KEY = OPTIONAL_FIELD_ENV_KEYS[0];
 
 let savedEnv: Record<string, string | undefined>;
 
@@ -54,7 +55,7 @@ function applyEnv(env: Record<string, string>) {
 
 beforeEach(() => {
   savedEnv = {};
-  for (const k of [...Object.keys(TAG_ENV), ...Object.keys(FIELD_ENV), OPTIONAL_FIELD_ENV_KEY, 'KEAP_SERVICE_ACCOUNT_KEY']) {
+  for (const k of [...Object.keys(TAG_ENV), ...Object.keys(FIELD_ENV), ...OPTIONAL_FIELD_ENV_KEYS, 'KEAP_SERVICE_ACCOUNT_KEY']) {
     savedEnv[k] = process.env[k];
     delete process.env[k];
   }
@@ -154,11 +155,23 @@ describe('buildCustomFields', () => {
 
   it('omits the optional display-name field WITHOUT reporting it missing when its env key is unset', () => {
     // The whole point: a not-yet-mirrored optional env key must not break the sync.
-    applyEnv(FIELD_ENV); // does NOT include KEAP_FIELD_WW_ARCHETYPE_NAME
+    applyEnv(FIELD_ENV); // does NOT include KEAP_FIELD_WW_ARCHETYPE_NAME / RESULT_ID
     const { fields, missingEnvKeys } = buildCustomFields(fixture());
     expect(fields).toHaveLength(4);
     expect(missingEnvKeys).toEqual([]); // not flagged as missing → sync proceeds
     expect(fields.map((f) => f.id)).not.toContain(272);
+    expect(fields.map((f) => f.id)).not.toContain(274);
+  });
+
+  it('includes the optional result-id field (id 274) with the bare result id when its env key is set', () => {
+    applyEnv({ ...FIELD_ENV, KEAP_FIELD_WW_RESULT_ID: '274' });
+    const { fields, missingEnvKeys } = buildCustomFields(
+      fixture({ resultId: 'c61f2121-2c22-4967-b0e2-7d5764a57c47' }),
+    );
+    expect(missingEnvKeys).toEqual([]);
+    expect(new Map(fields.map((f) => [f.id, f.content])).get(274)).toBe(
+      'c61f2121-2c22-4967-b0e2-7d5764a57c47',
+    );
   });
 });
 

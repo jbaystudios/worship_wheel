@@ -84,6 +84,12 @@ export function buildCustomFields(input: KeapSyncInput): {
     // identity, so a missing env key here (e.g. not yet mirrored to Vercel Production)
     // must NOT abort the sync the way the required fields do (the 2026-06-04 regression).
     { envKey: 'KEAP_FIELD_WW_ARCHETYPE_NAME', content: input.archetypeName, required: false },
+    // Supplementary: the bare result id (UUID). Lets Keap emails hyperlink text to
+    // `https://worshipwheel.com/results/~Contact._worshipwheelresultid~` — Keap's link
+    // validator rejects a bare full-URL merge field but accepts a literal https:// prefix
+    // plus the id. OPTIONAL/non-blocking like the other supplementary fields. The full
+    // `results_url` field above remains the app-authoritative link.
+    { envKey: 'KEAP_FIELD_WW_RESULT_ID', content: input.resultId, required: false },
   ];
 
   const fields: { id: number; content: string | number | null }[] = [];
