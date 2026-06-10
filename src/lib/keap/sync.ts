@@ -50,22 +50,13 @@ function envNumericId(key: string): number | null {
 }
 
 export function resolveTagIds(): { tagIds: number[]; missingEnvKeys: string[] } {
-  const tagIds: number[] = [];
-  const missingEnvKeys: string[] = [];
-
-  // START / completion tag — triggers the follow-up campaign. The campaign
-  // removes this tag after routing, so it is NOT a durable "has completed" marker.
-  const completed = envNumericId('KEAP_TAG_WW_COMPLETED');
-  if (completed == null) missingEnvKeys.push('KEAP_TAG_WW_COMPLETED');
-  else tagIds.push(completed);
-
-  // Durable "Completed Assessment" history tag — stays on the contact so we can
-  // filter everyone who has taken the assessment without OR-ing the six archetype
-  // tags. Optional: a missing id is skipped (not fatal), like the supplementary fields.
-  const completedHistory = envNumericId('KEAP_TAG_WW_COMPLETED_HISTORY');
-  if (completedHistory != null) tagIds.push(completedHistory);
-
-  return { tagIds, missingEnvKeys };
+  // The app applies only the START / completion tag, which triggers the
+  // follow-up campaign. The durable "Completed Assessment" history tag (3984) is
+  // applied Keap-side within the campaign, not by the app.
+  const id = envNumericId('KEAP_TAG_WW_COMPLETED');
+  return id == null
+    ? { tagIds: [], missingEnvKeys: ['KEAP_TAG_WW_COMPLETED'] }
+    : { tagIds: [id], missingEnvKeys: [] };
 }
 
 // ── Custom field resolution (MVP: 4 fields) ───────────────────────────────
