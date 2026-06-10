@@ -16,7 +16,8 @@
 // and surface in the admin sync-health panel.
 
 import { createServiceClient } from '@/lib/supabase/service';
-import { upsertContact, applyTags, KeapApiError } from './client';
+import { PRIVACY_POLICY_URL } from '@/lib/constants';
+import { upsertContact, applyTags, getEmailStatus, optInEmail, KeapApiError } from './client';
 
 export interface KeapSyncInput {
   resultId: string;
@@ -107,6 +108,31 @@ export function buildCustomFields(input: KeapSyncInput): {
   return { fields, missingEnvKeys };
 }
 
+// ── Email opt-in (spec 008) ───────────────────────────────────────────────
+
+/**
+ * Make a completer marketable so the follow-up sequences deliver. API-created
+ * contacts default to `NonMarketable` and would receive no emails.
+ *
+ * Guarded + non-blocking (spec 008, FR-004/FR-012): only opts in `NonMarketable`
+ * contacts, so an already-engaged (single/double opt-in) or opted-out contact is
+ * never touched — a retake can't downgrade them or resurrect an unsubscribe. Any
+ * failure is logged and swallowed so it never fails the surrounding sync.
+ */
+async function ensureEmailOptIn(email: string): Promise<void> {
+  try {
+    const status = await getEmailStatus(email);
+    if (status !== 'NonMarketable') return; // already marketable or opted-out → leave untouched
+    const reason = `Completed the Worship Wheel assessment — consent per ${PRIVACY_POLICY_URL}`;
+    await optInEmail(email, reason);
+  } catch (err) {
+    console.error(
+      `keap opt-in for ${email} failed (non-fatal):`,
+      err instanceof Error ? err.message : err,
+    );
+  }
+}
+
 // ── Orchestrator ──────────────────────────────────────────────────────────
 
 async function writeStatus(
@@ -173,6 +199,10 @@ export async function syncSessionToKeap(input: KeapSyncInput): Promise<KeapSyncO
     });
 
     await applyTags(contact.id, tagIds);
+
+    // Opt the contact into marketing so the follow-up sequences can email them.
+    // Non-blocking: a failure here must not flip the sync to 'failed'.
+    await ensureEmailOptIn(input.email);
 
     await writeStatus(input.resultId, {
       keap_sync_status: 'synced',
