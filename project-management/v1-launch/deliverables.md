@@ -102,19 +102,19 @@ Each item has an owner, a status, a target date, and a definition of done. If an
 - **Trigger:** If D-AC finds a coverage gap that needs new archetypes (Path B), C-1 scope grows by 3 emails per added archetype — raise as scope change with Charl the same day.
 
 ### D-4 · Implement Charl's email copy as Keap sequences (one per archetype)
-- **Status:** 🟡 In progress — six archetype sequences set up in Keap (Charl); history tags created 2026-06-10 (see Tag reference below)
+- **Status:** 🟡 In progress — six archetype sequences set up in Keap (Charl); history tags created 2026-06-10. **Email deliverability unblocked 2026-06-10** — opt-in shipped (see *Email opt-in* below); a Campfire Strummer test contact ran the full flow and **received its sequence email** (the first time emails actually delivered).
 - **Target delivery:** **2026-06-03 (Wed)**
 - **Done when:**
   - All sequences from C-1 are built in Keap (one per archetype, 3 emails each)
   - The START-tag campaign's decision diamond routes each contact (by `worship_wheel_archetype` custom field) into the correct sequence, which applies the matching history tag
   - Test contacts (one per archetype) run through each sequence end-to-end — all 3 emails per sequence delivered on the expected cadence
-- **Dependencies:** C-1 (email copy delivered 2026-05-29), D-3 (Keap push live with archetype tags)
+- **Dependencies:** C-1 (email copy delivered 2026-05-29), D-3 (Keap push live with archetype tags); ✅ email opt-in (deliverability) shipped 2026-06-10
 
 #### Keap tag reference — Worship Wheel Assessment (archive of record)
 
 All tags follow the WGS house convention `10. Marketing 3755 WGS Worship Wheel Assessment <NN>. <Step>`.
 
-**Flow:** the app applies the **START tag (3967)** on submit and sets the `worship_wheel_archetype` custom field → the START tag triggers the campaign → a **decision diamond reads the custom field** and routes the contact into the matching archetype sequence → **within that sequence, the respective history tag is applied** (first step on entry). Routing is **custom-field driven, not tag-driven** — the history tags don't trigger sequences; they record which sequence a contact entered.
+**Flow:** the app applies the **START tag (3967)** + the durable **Completed Assessment tag (3984)** on submit and sets the `worship_wheel_archetype` custom field → the START tag triggers the campaign → a **decision diamond reads the custom field** and routes the contact into the matching archetype sequence → **within that sequence, the respective history tag is applied** (first step on entry). Routing is **custom-field driven, not tag-driven** — the history tags don't trigger sequences; they record which sequence a contact entered.
 
 **Control tags** — category `05. WGS System` (id 132):
 
@@ -122,6 +122,14 @@ All tags follow the WGS house convention `10. Marketing 3755 WGS Worship Wheel A
 |---|---|---|---|
 | `… 01. START` (completion) | **3967** | App (`src/lib/keap/sync.ts`) on submit | `KEAP_TAG_WW_COMPLETED` |
 | `… 99. STOP` (sequence exit) | **3970** | Keap (sequence control) | — |
+
+**Completion marker** — category `02. WGS History` (id 142), applied by the app on every submit:
+
+| Tag | Keap ID | Applied by | Env key |
+|---|---|---|---|
+| `… 00. Completed Assessment` | **3984** | App (`src/lib/keap/sync.ts`) on submit | `KEAP_TAG_WW_COMPLETED_HISTORY` |
+
+> The **START tag (3967) is removed by the campaign** after routing, so it is not a durable "has completed" marker. The **Completed Assessment tag (3984)** is the durable one — applied to every completer (alongside START) so completers can be filtered without OR-ing the six archetype tags. Added 2026-06-10; optional/non-blocking in the sync. **Must be mirrored to Vercel Production** (`KEAP_TAG_WW_COMPLETED_HISTORY=3984`).
 
 **Archetype history tags** — category `02. WGS History` (id 142), created 2026-06-10, applied within each archetype sequence (first step on entry):
 
@@ -143,10 +151,23 @@ All tags follow the WGS house convention `10. Marketing 3755 WGS Worship Wheel A
 | `worship_wheel_archetype` | 265 | snake_case key (`campfire_strummer`) — decision-diamond routing | `KEAP_FIELD_WW_ARCHETYPE` | ✅ |
 | `worship_wheel_archetype_name` | **272** | display name, no "The" (`Campfire Strummer`) — email merge fields | `KEAP_FIELD_WW_ARCHETYPE_NAME` | ⬜ optional¹ |
 | `worship_wheel_results_url` | 267 | full results URL | `KEAP_FIELD_WW_RESULTS_URL` | ✅ |
+| `worship_wheel_result_id` | **274** | bare result UUID — for hyperlinkable results link `https://worshipwheel.com/results/~Contact._worshipwheelresultid~` | `KEAP_FIELD_WW_RESULT_ID` | ⬜ optional¹ |
 | `worship_wheel_overall_score` | 269 | overall score (8–80) | `KEAP_FIELD_WW_OVERALL_SCORE` | ✅ |
 | `worship_wheel_overall_percentage` | 271 | overall percentage | `KEAP_FIELD_WW_OVERALL_PERCENTAGE` | ✅ |
 
-> ¹ `worship_wheel_archetype_name` (added 2026-06-10) is **optional in the sync** — if its env key is missing it's skipped with a warning, not fatal (the required identity field 265 is unaffected). Merge-field reference: `worshipwheelarchetypename`. **Must be mirrored to Vercel Production** (`KEAP_FIELD_WW_ARCHETYPE_NAME=272`) for it to populate in prod.
+> ¹ `worship_wheel_archetype_name` (272) and `worship_wheel_result_id` (274), both added 2026-06-10, are **optional in the sync** — a missing env key is skipped with a warning, not fatal (the required identity field 265 is unaffected). Merge-field references: `worshipwheelarchetypename`, `worshipwheelresultid`. Both env keys (`KEAP_FIELD_WW_ARCHETYPE_NAME=272`, `KEAP_FIELD_WW_RESULT_ID=274`) are **mirrored to Vercel Production + Preview** (added 2026-06-10) so they populate in prod.
+
+#### Email opt-in (deliverability) — ✅ shipped 2026-06-10 (spec 008)
+
+**The blocker:** Keap contacts created via the REST API default to `NonMarketable`, so **no follow-up sequence email would ever send** — D-3 pushed contacts that Keap silently refused to email. Confirmed live (a Campfire Strummer test contact received nothing until opt-in shipped).
+
+**The fix** (spec `008-keap-opt-in`, merged PR #12 `ddd0dfa`): after the contact upsert, the sync records a **single opt-in** via XML-RPC `APIEmailService.optIn` (REST v1 has no opt-in field). It is:
+
+- **Guarded** — reads `email_status` and only opts in `NonMarketable` contacts; already-marketable (single/double) and opted-out contacts are skipped, so a retake never downgrades an engaged contact or resurrects an unsubscribe.
+- **Non-blocking** — opt-in failures are logged, never fail the sync.
+- **Consent-backed** — the opt-in reason references the privacy policy, and the `EmailGate` consent link now points at the canonical policy (`shop.worshipguitarskills.com/pages/privacy-policy`).
+
+**Verified end-to-end 2026-06-10:** a completer moved `NonMarketable → SingleOptIn`, a retake stayed `SingleOptIn` (no downgrade), and a **real sequence email was received** — the first successful delivery. This unblocks D-4.
 
 ### D-5a · Solo dry-run smoke test
 - **Status:** 🔴 Not started
