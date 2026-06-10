@@ -25,8 +25,10 @@ function ElementRow({ element }: { element: ElementScore }) {
         </span>
       </div>
 
-      {/* Score bar */}
-      <div className="relative flex-1 h-[12px] rounded-full bg-theme-border">
+      {/* Score bar. max-md:flex-none + max-md:w-full: in the mobile column layout
+          `flex-1` would apply to the vertical axis and collapse the bar's height
+          to 0 — pin it to its 12px height and full width instead. */}
+      <div className="relative flex-1 h-[12px] rounded-full bg-theme-border max-md:flex-none max-md:w-full">
         <div
           className={`absolute inset-y-0 left-0 rounded-full ${barFillClass}`}
           style={{ width: `${element.score * 10}%` }}
