@@ -23,6 +23,7 @@ function fixture(overrides: Partial<KeapSyncInput> = {}): KeapSyncInput {
     overallScore: 35,
     overallPercentage: 43.75,
     archetypeKey: 'uneven_intermediate',
+    archetypeName: 'Uneven Intermediate',
     resultsUrl: 'https://worshipwheel.example.com/results/abc',
     ...overrides,
   };
@@ -41,6 +42,10 @@ const FIELD_ENV: Record<string, string> = {
   KEAP_FIELD_WW_OVERALL_PERCENTAGE: '271',
 };
 
+// Optional display-name field — kept out of FIELD_ENV so the "required 4" tests
+// exercise the env-unset path. Listed here only for env save/restore hygiene.
+const OPTIONAL_FIELD_ENV_KEY = 'KEAP_FIELD_WW_ARCHETYPE_NAME';
+
 let savedEnv: Record<string, string | undefined>;
 
 function applyEnv(env: Record<string, string>) {
@@ -49,7 +54,7 @@ function applyEnv(env: Record<string, string>) {
 
 beforeEach(() => {
   savedEnv = {};
-  for (const k of [...Object.keys(TAG_ENV), ...Object.keys(FIELD_ENV), 'KEAP_SERVICE_ACCOUNT_KEY']) {
+  for (const k of [...Object.keys(TAG_ENV), ...Object.keys(FIELD_ENV), OPTIONAL_FIELD_ENV_KEY, 'KEAP_SERVICE_ACCOUNT_KEY']) {
     savedEnv[k] = process.env[k];
     delete process.env[k];
   }
@@ -137,6 +142,23 @@ describe('buildCustomFields', () => {
     applyEnv({ KEAP_FIELD_WW_ARCHETYPE: '265' });
     const { fields } = buildCustomFields(fixture({ archetypeKey: 'mystery_key' }));
     expect(fields[0].content).toBe('mystery_key');
+  });
+
+  it('includes the optional display-name field (id 272) when its env key is set', () => {
+    applyEnv({ ...FIELD_ENV, [OPTIONAL_FIELD_ENV_KEY]: '272' });
+    const { fields, missingEnvKeys } = buildCustomFields(fixture({ archetypeName: 'Campfire Strummer' }));
+    expect(missingEnvKeys).toEqual([]);
+    expect(fields).toHaveLength(5);
+    expect(new Map(fields.map((f) => [f.id, f.content])).get(272)).toBe('Campfire Strummer');
+  });
+
+  it('omits the optional display-name field WITHOUT reporting it missing when its env key is unset', () => {
+    // The whole point: a not-yet-mirrored optional env key must not break the sync.
+    applyEnv(FIELD_ENV); // does NOT include KEAP_FIELD_WW_ARCHETYPE_NAME
+    const { fields, missingEnvKeys } = buildCustomFields(fixture());
+    expect(fields).toHaveLength(4);
+    expect(missingEnvKeys).toEqual([]); // not flagged as missing → sync proceeds
+    expect(fields.map((f) => f.id)).not.toContain(272);
   });
 });
 

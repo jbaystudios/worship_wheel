@@ -3,7 +3,7 @@ import { waitUntil } from '@vercel/functions';
 import { z } from 'zod';
 import { questions } from '@/data/questions';
 import { scoreScenario, scoreChecklist, scoreExperience, scoreElement, scoreOverall, scorePercentage, scoreBalance } from '@/lib/scoring/calculator';
-import { matchArchetype } from '@/lib/scoring/archetypes';
+import { matchArchetype, archetypeShortName } from '@/lib/scoring/archetypes';
 import { getScoreBand, getCtaBand } from '@/lib/scoring/bands';
 import { ELEMENT_CODES, ELEMENT_NAMES } from '@/types';
 import type { ElementCode, ElementScore } from '@/types';
@@ -221,6 +221,7 @@ export async function POST(request: Request) {
             overallScore: results.overallScore,
             overallPercentage: results.overallPercentage,
             archetypeKey: results.archetype.key,
+            archetypeName: archetypeShortName(results.archetype.name),
             resultsUrl: `${baseUrl}/results/${resultId}`,
           }),
         );
