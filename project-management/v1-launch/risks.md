@@ -1,17 +1,19 @@
 # v1 Launch — Risks & Blockers
 
-**As of 2026-05-25.** Updated whenever a new risk is identified or an existing one changes state.
+**As of 2026-06-11.** Updated whenever a new risk is identified or an existing one changes state. Launch moved to **2026-06-15 (Mon)**.
 
 Severity:
-- 🔴 **High** — actively blocks the critical path or threatens the 2026-06-12 date
+- 🔴 **High** — actively blocks the critical path or threatens the 2026-06-15 date
 - 🟡 **Medium** — could become high if not addressed within a week
 - 🟢 **Low** — known issue, has a clear mitigation, not date-threatening
 
 ---
 
-## 🔴 R-2 · Charl has not committed to the 2026-05-29 email-copy date
+## ✅ R-2 · Charl email copy (C-1) — RESOLVED 2026-06-11
 
-- **Impact:** D-4 (week-2 sequence build) depends on C-1 being in hand by 2026-05-29. The May 29 date was set by Derick, not agreed by Charl. Scope (as of 2026-05-22): **6 archetype sequences × 3 emails per sequence = 18 emails total.** With the no-weekend rule, Charl's effective writing window is Tue 05-26 → Fri 05-29 = **4 working days for 18 emails (~4.5 emails/day)**. If D-AC (see R-8) reveals coverage gaps and adds archetypes, the scope grows by 3 emails per added archetype and the window gets tighter.
+**Resolved:** Charl delivered the copy and implemented the six archetype result-email sequences **directly in Keap** himself; the funnel is live end-to-end (D-4 built 2026-06-11). The fall-back single-nurture-sequence contingency was not needed. Historical risk detail kept below for the record.
+
+- **Impact (historical):** D-4 (sequence build) depended on C-1 being in hand by 2026-05-29. The May 29 date was set by Derick, not agreed by Charl. Scope (as of 2026-05-22): **6 archetype sequences × 3 emails per sequence = 18 emails total.** With the no-weekend rule, Charl's effective writing window is Tue 05-26 → Fri 05-29 = **4 working days for 18 emails (~4.5 emails/day)**. If D-AC (see R-8) reveals coverage gaps and adds archetypes, the scope grows by 3 emails per added archetype and the window gets tighter.
 - **Owner of resolution:** Derick (put the date + 18-email scope to Charl) → Charl (confirm in writing)
 - **Mitigation:**
   - Derick puts the date AND the 18-email scope to Charl in writing today (2026-05-22) and asks for a yes/no
@@ -31,7 +33,9 @@ Severity:
 
 ## 🟢 R-5 · Cohort access mechanism — RESOLVED 2026-05-28
 
-- **Decision:** **Open public URL on a custom domain** (`worshipwheel.worshipguitarskills.com`). No auth, no invite token, no gating. The "controlled cohort" is achieved on the distribution side, not the access side: **Charl shares the link only to a controlled segment of his Keap/Infusionsoft database**, so the audience is bounded by who he emails — not by code.
+> **Domain correction (2026-06-11):** the live canonical domain is **`worshipwheel.com`** — the planned `worshipwheel.worshipguitarskills.com` subdomain was never deployed. Read the references below accordingly.
+
+- **Decision:** **Open public URL on the canonical domain** (`worshipwheel.com`). No auth, no invite token, no gating. The "controlled cohort" is achieved on the distribution side, not the access side: **Charl shares the link only to a controlled segment of his Keap/Infusionsoft database**, so the audience is bounded by who he emails — not by code.
 - **Why this over the alternatives:** Zero build cost vs invite-tokens or login gates. Charl already has the segmentation tool (Keap audiences) and doesn't need a public marketing channel for v1. Leakage risk is acceptable for a controlled-cohort soft launch.
 - **Implication for D-5b:** The "cohort access mechanism tested" line collapses to "custom domain resolves and serves the v1 build" — covered by D-6 production deploy.
 - **Implication for D-6:** Custom domain setup (`worshipwheel.worshipguitarskills.com`) must be configured on Vercel before launch — see D-6 done criteria.

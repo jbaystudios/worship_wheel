@@ -1,6 +1,8 @@
 # v1 Launch — Timeline
 
-**Launch:** 2026-06-12 · **Today:** 2026-05-28
+**Launch:** 2026-06-15 (Mon) · **Today:** 2026-06-11
+
+> **REVISED 2026-06-11 — current state:** Launch moved 2026-06-12 → **2026-06-15 (Mon)** (no-weekend rule + Charl). **Build is complete and the funnel is live end-to-end** — C-1 + D-4 done (Charl built the six archetype sequences in Keap), email opt-in/merge-fields/completion-tag shipped, app live on `worshipwheel.com`. **Remaining: D-5a/D-5b launch QA (started 2026-06-11) → confirm C-2 cohort list → S-1 go/no-go (2026-06-15) → launch.** The critical path is now QA, not build. The week-by-week below is the original plan, kept as a record.
 
 **Tightened 2026-05-22, refined 2026-05-22 (3×):**
 - Week 1 — Derick build sprint Mon–Fri, finishing 2026-05-29 (D-1, D-2, D-3, D-AC, D-5a solo dry-run). Charl delivers C-1 (18 emails across 6 archetype sequences) on 2026-05-29.
@@ -67,9 +69,9 @@ Critical path is in **bold**.
 
 ---
 
-## Launch day · 2026-06-12 (Fri)
+## Launch day · 2026-06-15 (Mon)
 
-- Cohort receives access (mechanism still TBD — see [`risks.md#R-5`](risks.md))
+- Cohort receives access: Charl emails the `worshipwheel.com` link to his hand-picked Keap segment (R-5)
 - Monitor admin dashboard (sync-health, funnel, events) throughout the day
 - 15-minute end-of-day check-in between Charl and Derick
 
