@@ -1,8 +1,8 @@
 # v1 Launch — Overview
 
-**Launch date:** 2026-06-12
-**Audience:** Controlled cohort — a hand-picked segment of Charl's Keap/Infusionsoft database. Distribution-side gating only: open public URL on `worshipwheel.worshipguitarskills.com`, no auth, no invite tokens. Charl chooses who receives the link. Size TBD via C-2.
-**Status:** Scope agreed between Derick and Charl on 2026-05-22; cohort access mechanism resolved 2026-05-28 (R-5)
+**Launch date:** 2026-06-15 (Mon) — moved from 2026-06-12 (Fri) on 2026-06-11 (no-weekend rule + Charl)
+**Audience:** Controlled cohort — a hand-picked segment of Charl's Keap/Infusionsoft database. Distribution-side gating only: open public URL on `worshipwheel.com`, no auth, no invite tokens. Charl chooses who receives the link. Size TBD via C-2.
+**Status:** Scope agreed 2026-05-22; cohort access resolved 2026-05-28 (R-5). **Build complete + funnel live end-to-end 2026-06-11; in launch QA.**
 
 ## Goal
 
@@ -13,13 +13,13 @@ Get a working end-to-end version of the Worship Wheel into the hands of a small,
 
 ## In scope for v1
 
-- ✅ Core 16-question assessment flow
+- ✅ Core 24-question assessment flow (3 per element)
 - ✅ Results page with radar chart and recommendations
-- 🔨 **Printable PDF download** from the results page
-- 🔨 **Keap push** — completed assessments create/update Keap contacts with archetype + score tags
-- 🔨 **Keap follow-up email sequences — one dedicated sequence per profile archetype, 3 emails per sequence** (6 archetypes × 3 emails = 18 emails total). No fallback path — every user must land in a named archetype (see D-AC). Copy by Charl, implementation by Derick.
+- ✅ **Printable PDF download** from the results page (D-2)
+- ✅ **Keap push** — completed assessments create/update Keap contacts with archetype + custom fields + completion tag; auto opted-in so emails deliver (D-3 + spec 008)
+- ✅ **Keap follow-up email sequences — one dedicated sequence per profile archetype** (6 archetypes). No fallback path — every user lands in a named archetype (D-AC). Built by Charl in Keap, app-side wiring by Derick (D-4). Live end-to-end 2026-06-11; full cadence sign-off in D-5b QA.
 - ✅ Lead capture (already live)
-- ✅ Admin dashboard for monitoring (005 — already shipped, pending polish)
+- ✅ Admin dashboard for monitoring (005 — shipped, pending polish)
 
 ## Out of scope for v1 (hidden / deferred)
 

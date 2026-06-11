@@ -1,6 +1,6 @@
 # v1 Launch — Deliverables by Owner
 
-Launch date: **2026-06-12** · Today: **2026-05-28** · Days remaining: **15**
+Launch date: **2026-06-15 (Mon)** · Today: **2026-06-11** · Days remaining: **4 (incl. launch day)** · _moved from 2026-06-12 (no-weekend rule + Charl)_
 
 Each item has an owner, a status, a target date, and a definition of done. If any of those four are blank, the [`project-manager`](../../.claude/skills/project-manager/SKILL.md) skill should flag it.
 
@@ -11,8 +11,8 @@ Each item has an owner, a status, a target date, and a definition of done. If an
 ## 👤 Charl Coetzee (Worship Guitar Skills) — he/him
 
 ### C-1 · Email copy for Keap follow-up sequences — one dedicated sequence per profile archetype
-- **Status:** 🔴 Not started — **and not yet committed by Charl**
-- **Target delivery to Derick:** **2026-05-29 (Fri)** (Derick's target; Charl has not yet confirmed in writing)
+- **Status:** ✅ **DONE** — Charl delivered the copy and implemented it directly in Keap as the six archetype result-email sequences (see D-4). Funnel live end-to-end 2026-06-11.
+- **Target delivery to Derick:** ~~2026-05-29 (Fri)~~ — delivered (Charl built the sequences in Keap himself rather than handing copy to Derick)
 - **Scope:** **One dedicated email sequence per profile archetype × 3 emails per sequence = 18 emails total.** Currently 6 named archetypes defined in `src/lib/scoring/archetypes.ts`:
   1. The Campfire Strummer
   2. The Rhythm Machine
@@ -32,10 +32,10 @@ Each item has an owner, a status, a target date, and a definition of done. If an
   - D-AC complete on 2026-05-25 — confirms final archetype count before Charl writes at scale
 - **Escalation:** If no written commit from Charl by 2026-05-25, raise as launch-threatening — see [`risks.md#R-2`](risks.md)
 
-### C-2 · Cohort selection
-- **Status:** 🔴 Not started
-- **Target delivery:** 2026-06-05 (Fri, one week before launch)
-- **Done when:** List of cohort members (name + email) handed to Derick, plus any pre-import preferences for Keap tags
+### C-2 · Cohort selection + send
+- **Status:** 🟢 **Charl-owned — no handoff to Derick.** Audience = Charl's **existing members**; Charl actions the send himself (segments in Keap and emails the `worshipwheel.com` link). No cohort list needs to come to Derick, and no Keap import step on Derick's side.
+- **Target:** Launch day, 2026-06-15 (Mon)
+- **Done when:** Charl sends the launch link to his existing-member segment on launch day
 
 ### C-3 · PDF design review (post-build, optional)
 - **Status:** 🟢 Deferred to post-build
@@ -102,13 +102,13 @@ Each item has an owner, a status, a target date, and a definition of done. If an
 - **Trigger:** If D-AC finds a coverage gap that needs new archetypes (Path B), C-1 scope grows by 3 emails per added archetype — raise as scope change with Charl the same day.
 
 ### D-4 · Implement Charl's email copy as Keap sequences (one per archetype)
-- **Status:** 🟡 In progress — six archetype sequences set up in Keap (Charl); history tags created 2026-06-10. **Email deliverability unblocked 2026-06-10** — opt-in shipped (see *Email opt-in* below); a Campfire Strummer test contact ran the full flow and **received its sequence email** (the first time emails actually delivered).
-- **Target delivery:** **2026-06-03 (Wed)**
+- **Status:** ✅ **BUILT 2026-06-11** — Charl implemented the June result emails for all six archetype sequences in Keap; the funnel is **live end-to-end** (START tag → decision diamond on `worship_wheel_archetype` → matching sequence + history tag → opted-in contact receives emails). The remaining item — **all 6 sequences verified end-to-end on the correct cadence with test contacts — is the D-5b QA now in progress**, not a build gap.
+- **Target delivery:** ~~2026-06-03 (Wed)~~ — built 2026-06-11
 - **Done when:**
-  - All sequences from C-1 are built in Keap (one per archetype, 3 emails each)
-  - The START-tag campaign's decision diamond routes each contact (by `worship_wheel_archetype` custom field) into the correct sequence, which applies the matching history tag
-  - Test contacts (one per archetype) run through each sequence end-to-end — all 3 emails per sequence delivered on the expected cadence
-- **Dependencies:** C-1 (email copy delivered 2026-05-29), D-3 (Keap push live with archetype tags); ✅ email opt-in (deliverability) shipped 2026-06-10
+  - ✅ All sequences from C-1 built in Keap (one per archetype)
+  - ✅ The START-tag campaign's decision diamond routes each contact (by `worship_wheel_archetype`) into the correct sequence, which applies the matching history tag (live-verified for Campfire Strummer + Rhythm Machine 2026-06-10)
+  - ⏳ Test contacts (one per archetype) run through each sequence end-to-end — every email delivered on the expected cadence → **D-5b**
+- **Dependencies:** ✅ C-1 (delivered/implemented), ✅ D-3 (Keap push live), ✅ email opt-in (deliverability) shipped 2026-06-10
 
 #### Keap tag reference — Worship Wheel Assessment (archive of record)
 
@@ -170,8 +170,8 @@ All tags follow the WGS house convention `10. Marketing 3755 WGS Worship Wheel A
 **Verified end-to-end 2026-06-10:** a completer moved `NonMarketable → SingleOptIn`, a retake stayed `SingleOptIn` (no downgrade), and a **real sequence email was received** — the first successful delivery. This unblocks D-4.
 
 ### D-5a · Solo dry-run smoke test
-- **Status:** 🔴 Not started
-- **Target delivery:** **2026-05-29 (Fri)**
+- **Status:** 🟡 **In progress** — started 2026-06-11 (folds into the broader D-5b launch QA, now that the full funnel is live)
+- **Target delivery:** ~~2026-05-29 (Fri)~~ → **2026-06-12 (Fri)**
 - **Done when:**
   - Derick personally completes the full assessment flow on desktop and mobile
   - Confirms VSL hidden, PDF downloads correctly, Keap push lands a contact with correct archetype + score tags
@@ -181,8 +181,8 @@ All tags follow the WGS house convention `10. Marketing 3755 WGS Worship Wheel A
 - **Scope:** Solo only — broader pre-launch verification is D-5b
 
 ### D-5b · Pre-launch checks (structured verification)
-- **Status:** 🔴 Not started — week-2 deliverable
-- **Target delivery:** **2026-06-05 (Fri)**
+- **Status:** 🟡 **In progress** — started 2026-06-11 against the live funnel
+- **Target delivery:** ~~2026-06-05 (Fri)~~ → **2026-06-12 (Fri)** (before the weekend; go/no-go 2026-06-15)
 - **Done when:** Every checklist item passes (or is triaged as a known issue for week 3):
   - Full happy-path e2e: assessment → results → PDF → Keap contact → archetype tag fires → first sequence email received
   - All 6 archetype sequences verified end-to-end with test contacts (every email delivered, correct cadence)
@@ -207,22 +207,21 @@ All tags follow the WGS house convention `10. Marketing 3755 WGS Worship Wheel A
 - **Dependencies:** None (existed independently of D-1/D-2/D-3)
 
 ### D-6 · Production deployment + launch-day smoke test
-- **Status:** 🔴 Not started — **unblocked 2026-05-22** (Vercel `office-3285` access granted)
-- **Target delivery:** 2026-06-11 (Thu, day before launch)
+- **Status:** 🟢 **Largely done** — app is live on `worshipwheel.com` (canonical domain since 2026-05-29) and serving prod traffic (continuous deploys verified all through 2026-06-10/11). Remaining: the **launch-day smoke test** at go/no-go.
+- **Target delivery:** ~~2026-06-11 (Thu)~~ → smoke test at **2026-06-15 (Mon)** go/no-go
 - **Done when:**
-  - Production URL serves the v1 build
-  - **Custom domain `worshipwheel.worshipguitarskills.com` is live on Vercel** with valid TLS — this is the URL Charl distributes to the Keap segment (R-5 resolution)
-  - Quick smoke test confirms the happy path post-deploy (assessment → results → PDF → Keap contact)
-- **Dependencies:** ✅ Vercel team access (resolved 2026-05-22); D-5b checklist passed; **DNS access for `worshipguitarskills.com`** — Charl controls DNS and has agreed to grant Derick access (low-risk action item, confirm by 2026-06-08)
+  - ✅ Production serves the v1 build on **`worshipwheel.com`** with valid TLS — the URL Charl distributes to the Keap segment. (The earlier-planned `worshipwheel.worshipguitarskills.com` subdomain was dropped — `worshipwheel.com` is the only/canonical domain.)
+  - ⏳ Launch-day smoke test confirms the happy path post-deploy (assessment → results → PDF → Keap contact opted-in → sequence email)
+- **Dependencies:** ✅ Vercel team access; ✅ domain live; D-5b QA passed
 
 ---
 
 ## Shared / coordination
 
 ### S-1 · Launch-day checklist + go/no-go meeting
-- **Status:** 🔴 Not scheduled
-- **Target:** 2026-06-11 (Thu)
-- **Done when:** Derick + Charl confirm all deliverables green, agree to release
+- **Status:** 🔴 Not scheduled — **schedule for 2026-06-15 (Mon)**
+- **Target:** 2026-06-15 (Mon, launch day)
+- **Done when:** Derick + Charl confirm all deliverables green (D-5b QA passed, cohort list in hand), agree to release
 
 ---
 
@@ -230,9 +229,13 @@ All tags follow the WGS house convention `10. Marketing 3755 WGS Worship Wheel A
 
 | Status | Count |
 |---|---|
-| ✅ Done | 4 (D-2, D-3, D-AC, D-7) |
-| 🟡 In progress / partial | 1 (D-1 — code shipped, cross-width check pending) |
-| 🔴 Not started | 7 (C-1, C-2, D-4, D-5a, D-5b, D-6, S-1) |
-| 🟢 Deferred (non-blocking) | 1 (C-3) |
+| ✅ Done | 7 (C-1, D-1, D-2, D-3, D-4, D-7, D-AC) |
+| 🟢 Largely done (launch-day step left) | 1 (D-6 — live on `worshipwheel.com`; smoke test at go/no-go) |
+| 🟡 In progress | 2 (D-5a, D-5b — launch QA, started 2026-06-11) |
+| 🟢 Charl-owned (launch-day action) | 1 (C-2 — Charl sends link to his existing-member segment) |
+| 🔴 To schedule | 1 (S-1 go/no-go — 2026-06-15) |
+| 🟢 Deferred (non-blocking) | 1 (C-3 — Charl PDF review) |
+
+> **Critical path is now QA, not build.** C-1 + D-4 are done and the funnel is live end-to-end. The only gating work on Derick's side is **D-5a/D-5b QA**; then **S-1 go/no-go** → Charl sends the link (C-2) → launch 2026-06-15. The cohort (existing members) needs no list handoff.
 
 See [`timeline.md`](timeline.md) for the week-by-week schedule and [`risks.md`](risks.md) for blocker mitigations.
