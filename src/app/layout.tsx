@@ -1,6 +1,12 @@
 import type { Metadata } from 'next';
 import { Montserrat } from 'next/font/google';
+import { GoogleAnalytics } from '@next/third-parties/google';
 import './globals.css';
+
+// GA4 measurement ID (G-XXXXXXX). When unset (local/preview), GA4 is not loaded.
+// NOTE (v1): no consent gating yet — deliberate scope decision. Add Google
+// Consent Mode v2 + Cookiebot before broad public traffic (POPIA/GDPR).
+const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 
 const montserrat = Montserrat({
   subsets: ['latin'],
@@ -25,6 +31,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={montserrat.variable}>
       <body className="font-sans">{children}</body>
+      {GA_MEASUREMENT_ID && <GoogleAnalytics gaId={GA_MEASUREMENT_ID} />}
     </html>
   );
 }

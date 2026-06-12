@@ -66,6 +66,30 @@ interface TrackOptions {
   withAcquisition?: boolean;
 }
 
+// GA4 mirror — milestone funnel events only. page_view is captured by GA4's
+// enhanced measurement; per-question events stay first-party (Supabase) to
+// avoid GA4 noise. Best-effort: never throws into the assessment UI.
+const GA4_EVENTS = new Set<EventType>([
+  'assessment_started',
+  'assessment_submitted',
+  'pdf_downloaded',
+]);
+
+type Gtag = (command: 'event', name: string, params?: Record<string, unknown>) => void;
+
+function sendToGa4(eventType: EventType, opts: TrackOptions): void {
+  if (typeof window === 'undefined' || !GA4_EVENTS.has(eventType)) return;
+  const gtag = (window as Window & { gtag?: Gtag }).gtag;
+  if (typeof gtag !== 'function') return; // GA4 not loaded (no measurement id)
+  try {
+    const params: Record<string, unknown> = {};
+    if (opts.resultId) params.result_id = opts.resultId;
+    gtag('event', eventType, params);
+  } catch {
+    // Best-effort — analytics failures must never affect the assessment.
+  }
+}
+
 export function trackEvent(eventType: EventType, opts: TrackOptions = {}): void {
   if (typeof window === 'undefined') return;
   const payload: Record<string, unknown> = {
@@ -81,6 +105,7 @@ export function trackEvent(eventType: EventType, opts: TrackOptions = {}): void 
     if (acquisition) payload.acquisition = acquisition;
   }
   post(payload);
+  sendToGa4(eventType, opts);
 }
 
 // Convenience wrappers for the assessment flow (wired in task T029).

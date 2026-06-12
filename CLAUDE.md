@@ -78,7 +78,7 @@ Spec Kit artefacts live in `.specify/`. Slash commands live in `.claude/commands
 - **Styling**: Tailwind CSS 3.4
 - **Validation**: Zod
 - **CRM**: Keap/Infusionsoft REST API v1 (Service Account Key auth)
-- **Analytics**: GA4 via GTM (consent-gated by CookieBot); first-party event tracking via `assessment_events` (admin dashboard)
+- **Analytics**: GA4 (direct, via `@next/third-parties` `<GoogleAnalytics>` in root layout, gated on `NEXT_PUBLIC_GA_MEASUREMENT_ID`); milestone events (`assessment_started`, `assessment_submitted`, `pdf_downloaded`) mirrored to GA4 from the central `trackEvent` sink in `src/lib/events/tracker.ts`. **v1 has no consent gating** (deliberate scope decision — add Google Consent Mode v2 + Cookiebot before broad public traffic; POPIA/GDPR). First-party event tracking via `assessment_events` (admin dashboard)
 - **Testing**: Vitest (unit), Playwright (e2e)
 - **Config data**: Static JSON in `src/data/` (questions, recommendations, elements) — version-controlled, not in DB
 
