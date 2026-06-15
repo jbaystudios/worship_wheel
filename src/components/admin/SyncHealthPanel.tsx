@@ -6,6 +6,9 @@ import type { LeadRow } from '@/types/admin';
 interface SyncHealthPanelProps {
   /** Pre-filtered to keapSyncStatus in {failed, retrying}. */
   rows: LeadRow[];
+  /** Total leads in the selected range. When 0, there is nothing to sync, so
+   *  the panel reads neutral ("no leads") instead of a vacuous "all synced". */
+  totalLeads?: number;
   /** Whether the underlying data load failed (renders neutral, not "healthy"). */
   unavailable?: boolean;
 }
@@ -21,7 +24,7 @@ function formatDateTime(iso: string): string {
   });
 }
 
-export function SyncHealthPanel({ rows, unavailable }: SyncHealthPanelProps) {
+export function SyncHealthPanel({ rows, totalLeads, unavailable }: SyncHealthPanelProps) {
   if (unavailable) {
     return (
       <section
@@ -33,6 +36,24 @@ export function SyncHealthPanel({ rows, unavailable }: SyncHealthPanelProps) {
         </h2>
         <p className="mt-space-1 text-text-sm text-theme-text-muted">
           Sync status is unavailable right now.
+        </p>
+      </section>
+    );
+  }
+
+  // Nothing has been submitted in range — there is genuinely nothing to sync,
+  // so don't imply a clean run with a green "all synced" badge.
+  if (totalLeads === 0) {
+    return (
+      <section
+        aria-labelledby="sync-health-heading"
+        className="rounded-md border border-theme-border bg-theme-bg-2 px-space-5 py-space-4"
+      >
+        <h2 id="sync-health-heading" className="text-text-base font-bold text-theme-text">
+          Keap sync health
+        </h2>
+        <p className="mt-space-1 text-text-sm text-theme-text-muted">
+          No leads in the selected range yet — nothing to sync.
         </p>
       </section>
     );

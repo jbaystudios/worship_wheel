@@ -70,9 +70,11 @@ export default async function LeadsPage({
 
   let data: LeadsResponse | null = null;
   let healthData: LeadsResponse | null = null;
+  let rangeTotal: number | null = null;
   let loadError: string | null = null;
   try {
-    [data, healthData] = await Promise.all([
+    let rangeTotalData: LeadsResponse;
+    [data, healthData, rangeTotalData] = await Promise.all([
       getLeadsPage(query),
       // Sync-health panel reads a top slice of failed+retrying rows in the same
       // range. Each `syncStatus` filter is mutually exclusive at the API layer,
@@ -105,7 +107,11 @@ export default async function LeadsPage({
           ),
         } satisfies LeadsResponse;
       })(),
+      // Unfiltered lead count for the same range — drives the sync-health
+      // empty state independently of the table's search/status filters.
+      getLeadsPage({ range: query.range, page: 1, pageSize: 1, q: null, syncStatus: null }),
     ]);
+    rangeTotal = rangeTotalData.total;
   } catch (err) {
     loadError = err instanceof Error ? err.message : 'Unknown error';
   }
@@ -133,7 +139,7 @@ export default async function LeadsPage({
         </div>
       ) : data && healthData ? (
         <>
-          <SyncHealthPanel rows={healthData.rows} />
+          <SyncHealthPanel rows={healthData.rows} totalLeads={rangeTotal ?? undefined} />
           <LeadsTable
             rows={data.rows}
             page={data.page}
