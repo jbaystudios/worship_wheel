@@ -2,7 +2,7 @@
 
 Running record of manual QA we've run against the live stack. **One-liners only** — this is for Derick + Charl to walk before go-live (2026-06-12), not a regression suite.
 
-**Last updated:** 2026-05-29
+**Last updated:** 2026-06-15
 
 ---
 
@@ -43,3 +43,7 @@ Running record of manual QA we've run against the live stack. **One-liners only*
 
 ## Keap email opt-in + merge fields + Completed tag (spec 008 + follow-ups)
 - 2026-06-10 · ✅ · Live prod end-to-end on `derick+cs04@swaydeandco.com`. Opt-in: fresh contact moved `NonMarketable → SingleOptIn` (XML-RPC `APIEmailService.optIn`); retake left it `SingleOptIn` (no downgrade). Rhythm Machine submit → `archetype=rhythm_machine`, `archetype_name="Rhythm Machine"`, `result_id` populated (matches `results_url`), tags `3984 Completed Assessment` + `3974 Rhythm Machine`. First follow-up emails actually delivered (were silently blocked before — contacts defaulted `NonMarketable`). PRs #11/#12/#13. Required Vercel env (Production): `KEAP_FIELD_WW_ARCHETYPE_NAME=272`, `KEAP_FIELD_WW_RESULT_ID=274`, `KEAP_TAG_WW_COMPLETED_HISTORY=3984` — the two field vars were briefly Preview-only, fixed + redeployed.
+
+## Full archetype sweep + cleanse (launch day)
+- 2026-06-15 · ✅ · Launch-day fail-safe: pushed one synthetic prod submission per archetype via `POST /api/submit` (aliases `derick+150626-{bb,cs,rm,th,atp,ui}@swaydeandco.com`, 60s apart, UTM `source=qa/medium=internal/campaign=launch-test-150626`). Answer sets hand-built + pre-verified against the real `matchArchetype` before sending; all 6 returned HTTP 200 with the **exact target archetype** (balanced_beginner, campfire_strummer, rhythm_machine, theory_head, almost_there_player overall 56, uneven_intermediate). Charl/Derick confirmed all 6 received in Keap with correct contact details. (Generator scripts were throwaway — removed after.)
+- 2026-06-15 · ✅ · Test cleanse run against live Supabase (`npm run test:cleanse -- --confirm`): wiped 7 sessions + 55 events (today's 6 aliases + the older `christy+1206ww@jbaystudios.com`). Post-wipe counts sessions=0 / events=0 / aggregate_stats=0 → admin dashboard reset to zero. Keap completion-tag (3967) verified clean. Keap **contacts** left for manual deletion (cleanse doesn't touch them).
