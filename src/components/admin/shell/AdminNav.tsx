@@ -32,6 +32,13 @@ const NAV_ITEMS: NavItem[] = [
     label: 'Leads',
     matches: (p) => p.startsWith('/admin/leads'),
   },
+  // spec 009 — product catalogue (campaign CTA cards). Root-level alongside the
+  // stats sections above.
+  {
+    href: '/admin/products',
+    label: 'Products',
+    matches: (p) => p.startsWith('/admin/products'),
+  },
 ];
 
 export function AdminNav() {

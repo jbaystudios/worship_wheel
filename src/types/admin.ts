@@ -9,7 +9,9 @@ export type EventType =
   | 'question_viewed'
   | 'question_answered'
   | 'assessment_submitted'
-  | 'pdf_downloaded';
+  | 'pdf_downloaded'
+  | 'product_cta_shown'
+  | 'product_cta_clicked';
 
 export type DeviceType = 'mobile' | 'tablet' | 'desktop' | 'unknown';
 

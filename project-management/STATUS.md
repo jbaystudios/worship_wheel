@@ -18,6 +18,7 @@
 | Keap push (D-3) | ✅ Shipped | Contact upsert + completion tag 3967 + custom fields; idempotent on email |
 | **Keap email funnel (C-1 + D-4)** | ✅ **Built** | Charl's 6 archetype result-email sequences implemented in Keap; decision-diamond routes by `worship_wheel_archetype`. Live end-to-end. Full e2e cadence sign-off = the QA now starting (D-5b). |
 | Email deliverability (opt-in, spec 008) | ✅ Shipped | Completers auto opted-in (`SingleOptIn`) so sequences actually deliver — verified live 2026-06-10 |
+| **Product CTA cards (009)** | 🟧 Code-complete (branch) | Post-launch feature on `009-product-cta-cards`. Campaign-driven product cards on results via `?pr=` codes (captured→persisted→resolved); self-serve admin Products section w/ live preview; per-product analytics; excluded from PDF. tsc + 245 unit tests + prod build green. **Pending:** apply 4 Supabase migrations + manual QA against live stack (T046) + run gated e2e. |
 | **v1 launch readiness** | 🟡 On track (tight) | Build complete; funnel live. Remaining: **QA (D-5a/D-5b) → go/no-go (S-1) → launch Mon**. 4 working days incl. launch day. |
 
 ---

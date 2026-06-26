@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import { Montserrat } from 'next/font/google';
 import { GoogleAnalytics } from '@next/third-parties/google';
+import { PromoCapture } from '@/components/PromoCapture';
+import { UtmCapture } from '@/components/UtmCapture';
 import './globals.css';
 
 // GA4 measurement ID (G-XXXXXXX). When unset (local/preview), GA4 is not loaded.
@@ -30,7 +32,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={montserrat.variable}>
-      <body className="font-sans">{children}</body>
+      <body className="font-sans">
+        <PromoCapture />
+        <UtmCapture />
+        {children}
+      </body>
       {GA_MEASUREMENT_ID && <GoogleAnalytics gaId={GA_MEASUREMENT_ID} />}
     </html>
   );

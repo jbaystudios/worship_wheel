@@ -4,11 +4,14 @@ import { ScoreSummary } from '@/components/results/ScoreSummary';
 import { ElementBreakdown } from '@/components/results/ElementBreakdown';
 import { ArchetypeCard } from '@/components/results/ArchetypeCard';
 import { CtaBanner } from '@/components/results/CtaBanner';
+import { ProductCard } from '@/components/results/ProductCard';
 import { ShareSection } from '@/components/results/ShareSection';
 import { DownloadPdfButton } from '@/components/results/DownloadPdfButton';
 import { FEATURES } from '@/lib/features';
 import { archetypeContent } from '@/data/archetype-content';
+import { ELEMENT_NAMES } from '@/types';
 import type { StoredResult } from '@/lib/results/data';
+import type { ProductCopyTokens } from '@/lib/products/types';
 
 interface ResultsViewProps {
   result: StoredResult;
@@ -18,6 +21,19 @@ interface ResultsViewProps {
  *  result came from sessionStorage (post-submit) or a Supabase by-id load
  *  (shared link / Keap follow-up email). */
 export function ResultsView({ result }: ResultsViewProps) {
+  // Per-viewer values for product copy interpolation (spec 009). `products` is
+  // read defensively: the client sessionStorage fallback path (/results) does
+  // not carry it; only the canonical /results/[id] server load resolves it.
+  const products = result.products ?? [];
+  const productTokens: ProductCopyTokens = {
+    overallScore: result.overallScore,
+    archetypeName: result.archetype.name,
+    firstName: result.firstName,
+    weakestElement: result.weakestElements[0]
+      ? ELEMENT_NAMES[result.weakestElements[0]]
+      : null,
+  };
+
   return (
     <main className="flex min-h-screen flex-col bg-theme-bg">
       {/* Navbar */}
@@ -81,6 +97,13 @@ export function ResultsView({ result }: ResultsViewProps) {
           />
         </div>
       </section>
+
+      {/* Product CTA Cards (spec 009) — campaign offers chosen by the ?pr= codes
+          persisted on the session, in URL/stack order. Renders nothing when the
+          session carried no (active) codes — today's behaviour for most traffic. */}
+      {products.map((product) => (
+        <ProductCard key={product.id} product={product} tokens={productTokens} />
+      ))}
 
       {/* CTA Banner — hidden for MVP per FEATURES.showCta (D-1). */}
       {FEATURES.showCta && (

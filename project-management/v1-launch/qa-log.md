@@ -2,7 +2,7 @@
 
 Running record of manual QA we've run against the live stack. **One-liners only** — this is for Derick + Charl to walk before go-live (2026-06-12), not a regression suite.
 
-**Last updated:** 2026-06-15
+**Last updated:** 2026-06-24
 
 ---
 
@@ -47,3 +47,6 @@ Running record of manual QA we've run against the live stack. **One-liners only*
 ## Full archetype sweep + cleanse (launch day)
 - 2026-06-15 · ✅ · Launch-day fail-safe: pushed one synthetic prod submission per archetype via `POST /api/submit` (aliases `derick+150626-{bb,cs,rm,th,atp,ui}@swaydeandco.com`, 60s apart, UTM `source=qa/medium=internal/campaign=launch-test-150626`). Answer sets hand-built + pre-verified against the real `matchArchetype` before sending; all 6 returned HTTP 200 with the **exact target archetype** (balanced_beginner, campfire_strummer, rhythm_machine, theory_head, almost_there_player overall 56, uneven_intermediate). Charl/Derick confirmed all 6 received in Keap with correct contact details. (Generator scripts were throwaway — removed after.)
 - 2026-06-15 · ✅ · Test cleanse run against live Supabase (`npm run test:cleanse -- --confirm`): wiped 7 sessions + 55 events (today's 6 aliases + the older `christy+1206ww@jbaystudios.com`). Post-wipe counts sessions=0 / events=0 / aggregate_stats=0 → admin dashboard reset to zero. Keap completion-tag (3967) verified clean. Keap **contacts** left for manual deletion (cleanse doesn't touch them).
+
+## Funnel "Started" resilience (ops fix)
+- 2026-06-24 · ✅ · Applied `20260623120000_started_resilient_to_dropped_beacon.sql` to live Supabase (CREATE OR REPLACE on `get_funnel_summary` + `get_acquisition_breakdown`, no rows returned). Redefined funnel `started` as `assessment_started OR question_answered` so it survives a dropped best-effort beacon (root cause of an observed impossible funnel where Completed > Started for a real lead). Confirmed `question_answered` is emitted via the same sendBeacon path but fires up to 24×/session, so one survivor rescues `started`. Live admin funnel now consistent: Visitors 8 ≥ Started 2 = Completed 2 = Leads 2; prior Completed>Started resolved. Fix is retroactive (recomputes past ranges).

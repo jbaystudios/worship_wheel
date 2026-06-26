@@ -63,6 +63,7 @@ interface TrackOptions {
   questionId?: string;
   questionPosition?: number;
   resultId?: string;
+  productCode?: string;
   withAcquisition?: boolean;
 }
 
@@ -73,6 +74,8 @@ const GA4_EVENTS = new Set<EventType>([
   'assessment_started',
   'assessment_submitted',
   'pdf_downloaded',
+  'product_cta_shown',
+  'product_cta_clicked',
 ]);
 
 type Gtag = (command: 'event', name: string, params?: Record<string, unknown>) => void;
@@ -84,6 +87,7 @@ function sendToGa4(eventType: EventType, opts: TrackOptions): void {
   try {
     const params: Record<string, unknown> = {};
     if (opts.resultId) params.result_id = opts.resultId;
+    if (opts.productCode) params.product_code = opts.productCode;
     gtag('event', eventType, params);
   } catch {
     // Best-effort — analytics failures must never affect the assessment.
@@ -100,6 +104,7 @@ export function trackEvent(eventType: EventType, opts: TrackOptions = {}): void 
   if (opts.questionId) payload.questionId = opts.questionId;
   if (opts.questionPosition) payload.questionPosition = opts.questionPosition;
   if (opts.resultId) payload.resultId = opts.resultId;
+  if (opts.productCode) payload.productCode = opts.productCode;
   if (opts.withAcquisition) {
     const acquisition = captureAcquisition();
     if (acquisition) payload.acquisition = acquisition;
@@ -121,3 +126,11 @@ export const trackAssessmentSubmitted = (resultId?: string) =>
 // Spec 006 (D-2) — fired after the user successfully initiates a PDF download
 // from the results page. anon_session_id ties it back to the funnel session.
 export const trackPdfDownloaded = () => trackEvent('pdf_downloaded');
+
+// Spec 009 (US5) — per-product engagement. `shown` fires once when a Product
+// Card mounts on the results page; `clicked` fires on its CTA click. The code
+// ties the event back to the product in the admin engagement report.
+export const trackProductCtaShown = (productCode: string) =>
+  trackEvent('product_cta_shown', { productCode });
+export const trackProductCtaClicked = (productCode: string) =>
+  trackEvent('product_cta_clicked', { productCode });

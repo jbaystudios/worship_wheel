@@ -10,6 +10,8 @@ import type { ElementCode, ElementScore } from '@/types';
 import { createPublicClient } from '@/lib/supabase/public';
 import { syncSessionToKeap } from '@/lib/keap/sync';
 import { resolveRequestBaseUrl } from '@/lib/base-url';
+import { prCodesSchema } from '@/lib/products/schema';
+import { normalizeCodes } from '@/lib/products/code';
 
 // ── Zod validation ────────────────────────────────────────────
 
@@ -42,6 +44,8 @@ const submitSchema = z.object({
   anonSessionId: z.string().uuid().optional(),
   completionTimeSeconds: z.number().int().positive().max(86_400).optional(),
   utmParams: utmParamsSchema.optional(),
+  // spec 009: campaign product codes captured at entry (?pr=). Ordered, capped.
+  prCodes: prCodesSchema.optional(),
 });
 
 // ── Scoring logic ─────────────────────────────────────────────
@@ -150,8 +154,12 @@ export async function POST(request: Request) {
       );
     }
 
-    const { firstName, email, answers, anonSessionId, completionTimeSeconds, utmParams } =
+    const { firstName, email, answers, anonSessionId, completionTimeSeconds, utmParams, prCodes } =
       parsed.data;
+
+    // Defence in depth: re-normalize (lowercase/dedupe/cap) even though the
+    // client already does. Empty → null so the column stays absent (no card).
+    const productCodes = prCodes?.length ? normalizeCodes(prCodes).codes : [];
 
     // Verify we have 24 answers
     const answerCount = Object.keys(answers).length;
@@ -197,6 +205,7 @@ export async function POST(request: Request) {
           utm_term: utmParams?.term ?? null,
           utm_content: utmParams?.content ?? null,
           anon_session_id: anonSessionId ?? null,
+          product_codes: productCodes.length ? productCodes : null,
           // keap_sync_status defaults to 'pending' here; the Keap sync below
           // updates it to 'synced' or 'failed' out-of-band.
         });

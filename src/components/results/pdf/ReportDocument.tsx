@@ -31,6 +31,10 @@ export function ReportDocument({ data }: Props) {
       <ScoresPage data={data} />
       <ElementBreakdownPage data={data} />
       {FEATURES.showCta && <ArchetypePage data={data} />}
+      {/* Product CTA Cards (spec 009) are deliberately EXCLUDED from the v1 PDF
+          (FR-006 / SC-006). The PDF builds its own page list and does not reuse
+          <ResultsView>, so the card is absent by construction — do not add it
+          here without revisiting that out-of-scope decision. */}
     </Document>
   );
 }

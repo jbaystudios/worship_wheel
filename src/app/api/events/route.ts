@@ -59,6 +59,7 @@ export async function POST(request: Request) {
       question_id: e.questionId ?? null,
       question_position: e.questionPosition ?? null,
       result_id: e.resultId ?? null,
+      product_code: e.productCode ?? null,
       utm_source: e.acquisition?.utmSource ?? null,
       utm_medium: e.acquisition?.utmMedium ?? null,
       utm_campaign: e.acquisition?.utmCampaign ?? null,

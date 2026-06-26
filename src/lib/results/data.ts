@@ -10,8 +10,10 @@
 import { createServiceClient } from '@/lib/supabase/service';
 import { archetypeNameFromKey, ARCHETYPES_BY_KEY } from '@/lib/scoring/archetypes';
 import { getScoreBand, getCtaBand } from '@/lib/scoring/bands';
+import { loadActiveProductsByCodes } from '@/lib/products/resolve';
 import { ELEMENT_CODES, ELEMENT_NAMES } from '@/types';
 import type { AssessmentResult, ElementCode, ElementScore } from '@/types';
+import type { Product } from '@/lib/products/types';
 
 /** The shape the results UI renders — AssessmentResult plus identity fields.
  *  Matches the object the assessment flow stores in sessionStorage, so the
@@ -19,6 +21,9 @@ import type { AssessmentResult, ElementCode, ElementScore } from '@/types';
 export interface StoredResult extends AssessmentResult {
   sessionId: string;
   firstName: string;
+  /** Active campaign products to promote (spec 009), in URL/stack order.
+   *  Empty when the session carried no product codes (the common case). */
+  products: Product[];
 }
 
 interface SessionRow {
@@ -31,10 +36,11 @@ interface SessionRow {
   profile_archetype: string;
   weakest_elements: ElementCode[] | null;
   strongest_elements: ElementCode[] | null;
+  product_codes: string[] | null;
 }
 
 const SELECT_COLUMNS =
-  'id,first_name,element_scores,overall_score,overall_percentage,balance_score,profile_archetype,weakest_elements,strongest_elements';
+  'id,first_name,element_scores,overall_score,overall_percentage,balance_score,profile_archetype,weakest_elements,strongest_elements,product_codes';
 
 const FALLBACK_MESSAGE =
   "You've completed your Worship Wheel — your scores tell the story of where you are now and where to focus next.";
@@ -71,9 +77,12 @@ export async function loadResultView(resultId: string): Promise<StoredResult | n
     };
   });
 
+  const products = await loadActiveProductsByCodes(row.product_codes);
+
   return {
     sessionId: row.id,
     firstName: row.first_name,
+    products,
     elementScores,
     overallScore: row.overall_score,
     overallPercentage: Number(row.overall_percentage),

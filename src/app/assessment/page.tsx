@@ -18,20 +18,8 @@ import {
   trackQuestionAnswered,
   trackAssessmentSubmitted,
 } from '@/lib/events/tracker';
-
-/** Reads UTM params from the current URL, or undefined when none are present. */
-function captureUtmParams() {
-  if (typeof window === 'undefined') return undefined;
-  const p = new URLSearchParams(window.location.search);
-  const utm = {
-    source: p.get('utm_source'),
-    medium: p.get('utm_medium'),
-    campaign: p.get('utm_campaign'),
-    term: p.get('utm_term'),
-    content: p.get('utm_content'),
-  };
-  return Object.values(utm).some(Boolean) ? utm : undefined;
-}
+import { getPrCodes } from '@/lib/products/capture';
+import { getUtm } from '@/lib/analytics/utm';
 
 const AUTO_ADVANCE_DELAY = 400;
 const MIN_LOADING_MS = 2000;
@@ -158,7 +146,8 @@ export default function AssessmentPage() {
             1,
             Math.round((Date.now() - quizStartRef.current) / 1000),
           ),
-          utmParams: captureUtmParams(),
+          utmParams: getUtm(),
+          prCodes: getPrCodes(),
         }),
       }),
       new Promise<never>((_, reject) =>

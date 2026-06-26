@@ -12,9 +12,13 @@ export const EVENT_TYPES = [
   'question_answered',
   'assessment_submitted',
   'pdf_downloaded',
+  'product_cta_shown',
+  'product_cta_clicked',
 ] as const;
 
 const QUESTION_EVENT_TYPES = new Set(['question_viewed', 'question_answered']);
+const PRODUCT_EVENT_TYPES = new Set(['product_cta_shown', 'product_cta_clicked']);
+const PRODUCT_CODE_RE = /^[a-z0-9]{3,6}$/;
 
 const acquisitionSchema = z.object({
   utmSource: z.string().max(255).nullish(),
@@ -34,6 +38,7 @@ export const eventPayloadSchema = z
     questionId: z.string().max(64).optional(),
     questionPosition: z.number().int().min(1).max(24).optional(),
     resultId: z.string().uuid().optional(),
+    productCode: z.string().regex(PRODUCT_CODE_RE).optional(),
     acquisition: acquisitionSchema.optional(),
   })
   .superRefine((val, ctx) => {
@@ -82,6 +87,21 @@ export const eventPayloadSchema = z
         code: z.ZodIssueCode.custom,
         path: ['resultId'],
         message: 'only allowed on assessment_submitted',
+      });
+    }
+
+    const isProductEvent = PRODUCT_EVENT_TYPES.has(val.eventType);
+    if (isProductEvent && !val.productCode) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['productCode'],
+        message: 'required for product events',
+      });
+    } else if (!isProductEvent && val.productCode !== undefined) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['productCode'],
+        message: 'only allowed on product events',
       });
     }
   });
