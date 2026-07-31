@@ -3,7 +3,7 @@
 // Date-range control for dashboard views (spec 005, US2 / task T032).
 // Pushes the selected range to the URL; the Server Component page re-renders.
 import { useRouter, usePathname } from 'next/navigation';
-import { addDays, todayInReportingTz } from '@/lib/analytics/date-range';
+import { ALL_TIME_FROM, addDays, todayInReportingTz } from '@/lib/analytics/date-range';
 
 const PRESETS = [
   { label: 'Last 7 days', days: 7 },
@@ -33,6 +33,8 @@ export function DateRangePicker({ from, to, includeInternal }: DateRangePickerPr
   const inputClass =
     'rounded-sm border border-theme-border bg-theme-bg px-space-2 py-space-1 text-text-sm text-theme-text outline-none focus:border-accent-500 cursor-pointer';
 
+  const isAllTime = from === ALL_TIME_FROM && to === today;
+
   return (
     <div className="flex flex-wrap items-center gap-space-2">
       {PRESETS.map((preset) => (
@@ -45,6 +47,19 @@ export function DateRangePicker({ from, to, includeInternal }: DateRangePickerPr
           {preset.label}
         </button>
       ))}
+
+      <button
+        type="button"
+        onClick={() => navigate({ from: ALL_TIME_FROM, to: today })}
+        aria-pressed={isAllTime}
+        className={`cursor-pointer rounded-sm border px-space-3 py-space-1 text-text-sm font-medium transition-colors ${
+          isAllTime
+            ? 'border-accent-500 bg-accent-500 text-white'
+            : 'border-theme-border text-theme-text-muted hover:text-theme-text'
+        }`}
+      >
+        All time
+      </button>
 
       <input
         type="date"

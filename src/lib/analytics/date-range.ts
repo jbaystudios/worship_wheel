@@ -63,6 +63,17 @@ export function defaultRange(today: string = todayInReportingTz()): DateRange {
 }
 
 /**
+ * Floor date for the "All time" view — safely earlier than any assessment data
+ * (the tool launched in 2026), so this range captures every record.
+ */
+export const ALL_TIME_FROM = '2020-01-01';
+
+/** Range covering all data ever recorded: the floor date through today. */
+export function allTimeRange(today: string = todayInReportingTz()): DateRange {
+  return { from: ALL_TIME_FROM, to: today };
+}
+
+/**
  * Resolves `from`/`to` query params into a valid range, falling back to the
  * default window when a value is missing or malformed.
  * @throws RangeError when `from` is after `to`.
